@@ -1,12 +1,12 @@
 {
   "name": "swarm-forge",
   "displayName": "Swarm Forge",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": {
     "name": "MICAHFANG",
     "url": "https://github.com/MICAHFANG"
   },
-  "description": "End-to-end TypeScript engineering methodology plugin for Google Antigravity: Grill-Me spec interviews, zero-token TS AST component variant & dependency graphs, variant-first reuse audits, heterogeneous Gemini 4 / 3.8 Swarm execution, and adversarial read-only review.",
+  "description": "End-to-end TypeScript engineering methodology plugin for Google Antigravity: Grill-Me spec interviews, zero-token TS AST component variant & dependency graphs, PGSQL/Drizzle/Hono/Redis/Next.js best practices, and cross-family Swarm execution (Gemini 4 coders + Claude 5.5 adversarial review).",
   "logo": "assets/logo.svg",
   "repository": {
     "type": "git",

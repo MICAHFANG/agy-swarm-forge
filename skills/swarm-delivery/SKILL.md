@@ -2,17 +2,17 @@
 name: swarm-delivery
 description: >-
   在需求契约锁定后，或当用户显式要求“用 swarm / 蜂巢推进”（含语音输入谐音如“用这个 home 来推进”）时，
-  优先于内置同构 swarm 激活本技能：使用异构模型 Swarm 蜂巢（Gemini 3.8 Flash + Hydrogen + Neon + 按需 Carbon）
-  并发执行“TS 复用审计 -> 增量编码与本地自测 -> Neon High 对抗式严苛 Review（高危场景升级 Carbon High） -> Wiki 增量编译回写”的全自动交付。
+  优先于内置同构 swarm 激活本技能：使用跨家族异构模型 Swarm 蜂巢（Gemini 3.8 Flash 侦察 + Gemini 4 Hydrogen/Neon 编码 +
+  Claude Sonnet/Opus 5.5 跨架构对抗式严审）执行全自动端到端交付。
 ---
 
-# 异构蜂巢并发交付编排（`swarm-delivery`）
+# 跨家族异构蜂巢并发交付编排（`swarm-delivery`）
 
-本技能将 `swarm` 原生蜂巢能力与用户钦定的 **Gemini 4 / 3.8 异构模型矩阵** 深度绑定，确保主控会话始终轻量跟手，而交付代码在内部经过独立只读 `Neon High`（高危复杂场景自动升级 `Carbon High`）严苛打磨达到 95 分水准。
+本技能将 `swarm` 原生蜂巢能力与 **“Gemini 4 高吞吐编码 + Claude 5.5 跨架构挑刺终审”** 深度绑定：利用不同模型家族的正交视角彻底消除“同源模型自己写自己审的盲区”，同时天然分流 Gemini 与 Claude 两个独立配额池。
 
 > **前置必读**：先从当前可用技能列表中加载并阅读内置 `swarm` 技能的 `SKILL.md`，掌握 `swarm`、`post_message`、`read_board`、`swarm_wait` 的基础协议（注意：创建蜂巢的首回合结束时 `post_message`/`read_board`/`swarm_wait` 才会在下一回合挂载，且首回合回复末尾必须单独一行原样输出 `open_board` 值以便用户打开面板查看实时进度）。
 
-## 一、 用户钦定的异构模型分工矩阵（严禁随意混用）
+## 一、 跨家族异构模型分工矩阵（严禁退化为单一模型同构运行）
 
 创建 Worker 时通过 `swarm{action: "add", model: "<model-id>", ...}` 显式固定模型：
 
@@ -22,16 +22,17 @@ description: >-
 | **复用侦察兵** | `scout` | `gemini-3.8-flash-medium` | `inherit` | 秒查 `.agents/wiki/` 与 `arch-best-practices`（陌生技术调 `context7` 或 `find_gold_repos.mjs`），发布《组件复用清单 + 领域架构红线》 |
 | **常规编码/领域单测工兵** | `author-<slice>` | `gemini-4-hydrogen-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责常规业务切片、扩展现有组件 `variant`、补齐本领域 DDD 行为单测（**禁跑全仓测试**） |
 | **核心攻坚工兵** | `author-<core>` | `gemini-4-neon-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责复杂跨模块数据建模、PGSQL/Redis 高并发链路与底层抽象改造（**禁跑全仓测试**） |
-| **独立对抗终审与集成验证官** | `reviewer` | 默认 `gemini-4-neon-high`；按需升级 `gemini-4-carbon-high`（见下） | `inherit` | 加载 `strict-review` 与对应 `arch-best-practices` 手册，**纯只读不改业务码**；执行**唯一一次带硬超时的影响面集成验证**并打分 |
+| **跨架构对抗终审官** | `reviewer` | 默认 `claude-sonnet-5-5-high`；高危升级 `claude-opus-5-5-high`（见下） | `inherit` | **异构家族审查防同源盲区**；加载 `strict-review` 与 `arch-best-practices` 手册，纯只读执行唯一一次有界集成验证并打分 |
 | **图谱记忆官** | `wiki` | `gemini-3.8-flash-medium` | `inherit` | 代码合入主工作区并通过终审后，加载 `ts-repo-wiki` 重跑 AST 图谱脚本并增量编译更新语义 Wiki |
 
-**`reviewer` 模型分级选型规则**：
-- **默认日常场景（85%~90%）$\rightarrow$ `gemini-4-neon-high`**：常规前端组件与变体扩充、全栈业务功能、接口联调、模块整理重构。兼顾 95 分清单审查精度与高速返修闭环。
-- **高危重逻辑场景（10%~15%）$\rightarrow$ 升级为 `gemini-4-carbon-high`**：当改动命中以下任一条件时启用：
+**`reviewer` 跨家族选型与配额自动兜底规则**：
+- **默认日常场景（85%~90%）$\rightarrow$ `claude-sonnet-5-5-high`**：与 Gemini 4 编码工兵形成跨架构互补，对模块边界污染、组件重复造轮子、TS 类型松散和 UI 异常四态极其敏感，且响应速度快。
+- **高危重逻辑场景（10%~15%）$\rightarrow$ 升级为 `claude-opus-5-5-high`**：当改动命中以下任一条件时启用：
   1. 底层核心架构/公共核心底座重写（影响 `.agents/wiki/_generated/MODULE_GRAPH.md` 中的高 Fan-In 核心枢纽文件）；
-  2. 复杂异步并发/竞态控制、多端状态同步或复杂状态机；
+  2. PostgreSQL 复杂事务/锁并发、Redis 分布式竞态或复杂状态机；
   3. 鉴权、权限边界、计费支付等零容错高危逻辑；
-  4. 用户显式要求“用 Carbon 严审 / 深度审查”。
+  4. 用户显式要求“用 Opus 严审 / 最高规格审查”。
+- **配额兜底（Quota Fallback）**：启动或运行前若检测到 Claude 配额池耗尽，`claude-sonnet-5-5-high` 自动回退至 `gemini-4-neon-high`，`claude-opus-5-5-high` 自动回退至 `gemini-4-carbon-high`（通过 `swarm{action: "model"}` 无缝切换并向用户说明）。
 
 *(注：若当前技能列表中存在内置 `swarm_narrator` 或 `swarm_monitor`，按内置 `swarm` 技能要求一并添加 `narrator` / `monitor`；若某模型报额度耗尽，使用 `swarm{action:"model"}` 切换同档可用模型并告知用户。)*
 
@@ -73,7 +74,7 @@ description: >-
    - 由 `reviewer` 统一执行 **唯一一次** 类型检查与**按影响面收敛（Affected Scope）的测试**，**严禁无边界一把梭跑全仓慢测试/E2E**，命令必须设超时上限（`60s~90s`）：
      - 类型检查：`npx tsc --noEmit`（Monorepo 优先只跑受影响包 `pnpm --filter ...[HEAD~1] typecheck`）；
      - 影响面测试：利用 `.agents/wiki/_generated/graph.json` 的 `importedBy` 或测试框架增量能力只测受波及范围（如 `npx vitest related <changed-files> --run` 或 `pnpm --filter ...[HEAD~1] test`），若超时立即中止并收缩至直接调用方测试集。
-2. `reviewer`（默认 `gemini-4-neon-high`，高危场景 `gemini-4-carbon-high`）加载 `strict-review` 与触及领域的 `arch-best-practices/references/*.md`，逐项核查：
+2. `reviewer`（默认 `claude-sonnet-5-5-high`，高危场景 `claude-opus-5-5-high`）加载 `strict-review` 与触及领域的 `arch-best-practices/references/*.md`，以异构模型视角逐项核查：
    - **防造轮子与防双轨腐化**：是否私自新建重复组件，或留下了新旧两套并存 API？
    - **软件工程与领域最佳实践**：是否存在浅模块纯透传、PGSQL 循环 N+1 / 漏外键索引 / `OFFSET` 深分页 / 事务内网络 IO、Redis 无 TTL 或循环读写、TS 松散可选包/裸 `as`？
    - **完整四态与证据制**：所有 `[Blocker]` / `[Major]` 必须指出确切 `文件:行号` 与触发失败的真实执行路径（拒绝无根据的主观挑刺）。

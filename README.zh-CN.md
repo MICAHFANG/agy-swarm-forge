@@ -31,12 +31,12 @@ flowchart LR
   B -->|"跨文件新功能 / 重构 / 强制口令"| D["1. grill-spec\n静默查图谱 + 选择题拷问边界"]
   D --> E["锁定极简契约\n.agents/specs/*.md"]
   E --> F["2. swarm-delivery\n异构模型蜂巢并发推进"]
-  subgraph Swarm["异构 Swarm 蜂巢内部闭环"]
-    S1["scout (3.8 Flash)\nAST图谱 + 领域架构最佳实践"] --> S2["author-* (Hydrogen / Neon High)\n6字段NEVER契约 + 仅跑本领域秒测"]
-    S2 --> S3["reviewer (Neon High / 按需Carbon)\n唯一一次有界影响面测试 + 严审 >= 90"]
+  subgraph Swarm["跨模型家族异构 Swarm 蜂巢闭环"]
+    S1["scout (Gemini 3.8 Flash)\nAST图谱 + 领域架构最佳实践"] --> S2["author-* (Gemini 4 Hydrogen / Neon High)\n6字段NEVER契约 + 仅跑本领域秒测"]
+    S2 --> S3["reviewer (Claude Sonnet / Opus 5.5 High)\n跨架构对抗终审 + 有界影响面测试 >= 90"]
     S3 -->|"未达标打回 (最多2轮)"| S2
     S3 -->|"满2轮先质疑前提防空转"| H["主控自动升模或提炼单点决策"]
-    S3 -->|"通过并合入"| S4["wiki (3.8 Flash)\n刷新AST图谱 + Wiki + PITFALLS错题本"]
+    S3 -->|"通过并合入"| S4["wiki (Gemini 3.8 Flash)\n刷新AST图谱 + Wiki + PITFALLS错题本"]
   end
   F --> Swarm
   Swarm --> G["一次性向用户交付 95 分成品"]
@@ -44,7 +44,7 @@ flowchart LR
 
 ---
 
-## 四大核心模块（Skills + Rules + AST Graph）
+## 五大核心模块（Skills + Rules + AST Graph）
 
 | 组件 | 类型 | 作用说明 |
 | :--- | :---: | :--- |
@@ -58,17 +58,17 @@ flowchart LR
 
 ---
 
-## Gemini 4 & 3.8 异构模型分工矩阵
+## 跨家族异构模型分工矩阵（Gemini 4 编码 + Claude 5.5 审查）
 
-日常建议将主聊天窗口模型设为均衡跟手的 **`Gemini 4 Neon`**，后台蜂巢会自动按职责异构挂载：
+同一模型家族既写代码又做审查，容易出现“同源盲区（自己觉得顺眼的漏洞审不出来）”。日常建议主聊天窗口挂均衡跟手的 **`Gemini 4 Neon`**，后台蜂巢自动按**跨家族正交互补 + 双配额池分流**挂载：
 
 | 蜂巢角色 | 模型配置 | 设计原因 |
 | :--- | :--- | :--- |
 | **`coordinator`（主控）** | 当前会话模型（推荐 `Gemini 4 Neon`） | 保持主界面秒回跟手，只做调度仲裁，不下场写重代码 |
 | **`scout` / `wiki`** | `gemini-3.8-flash-medium` | 极低延迟完成图谱扫描、复用审计与收尾文档同步 |
-| **`author-<slice>`（常规工兵）** | `gemini-4-hydrogen-high` | 165+ tok/s 高速完成组件变体扩展、常规业务切片与单测补全 |
-| **`author-<core>`（核心攻坚）** | `gemini-4-neon-high` | 处理复杂跨模块状态流转与高难度抽象改造 |
-| **`reviewer`（独立终审官）** | 默认 **`gemini-4-neon-high`**<br>高危按需升级 **`gemini-4-carbon-high`** | 日常 90% 场景用 `Neon High` 兼顾严苛清单审查与双倍返修速度；涉及高 Fan-In 核心底座、复杂并发竞态或鉴权计费时自动升级 `Carbon High` 深度推演 |
+| **`author-<slice>`（常规工兵）** | `gemini-4-hydrogen-high` | 165+ tok/s 高速完成组件变体扩展、常规业务切片与本领域局部单测 |
+| **`author-<core>`（核心攻坚）** | `gemini-4-neon-high` | 处理复杂跨模块数据建模、PGSQL/Redis 并发链路与底层抽象 |
+| **`reviewer`（跨架构终审官）** | 默认 **`claude-sonnet-5-5-high`**<br>高危升级 **`claude-opus-5-5-high`**<br>*(配额兜底：`gemini-4-neon/carbon-high`)* | 用不同架构的 Claude 5.5 交叉挑刺 Gemini 4 的代码产出，打破同源放水盲区并分流独立配额池；涉及高 Fan-In 核心底座、复杂并发锁或鉴权计费时升级 `Claude Opus 5.5 High` |
 
 ---
 

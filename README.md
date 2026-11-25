@@ -31,9 +31,9 @@ flowchart LR
   B -->|"Multi-file Feature / Refactor / Forced"| D["1. grill-spec\nSilent Repo Scan + Multiple-Choice Interview"]
   D --> E["Lock Concise Spec\n.agents/specs/*.md"]
   E --> F["2. swarm-delivery\nHeterogeneous Swarm Execution"]
-  subgraph Swarm["Autonomous Heterogeneous Swarm Loop"]
-    S1["scout (Gemini 3.8 Flash)\nAST Graph + Arch Best Practices"] --> S2["author-* (Hydrogen / Neon High)\n6-Field NEVER Brief + Domain-Only Fast Test"]
-    S2 --> S3["reviewer (Neon High / Carbon High)\nBounded Affected Tests + strict-review >= 90"]
+  subgraph Swarm["Cross-Family Heterogeneous Swarm Loop"]
+    S1["scout (Gemini 3.8 Flash)\nAST Graph + Arch Best Practices"] --> S2["author-* (Gemini 4 Hydrogen / Neon High)\n6-Field NEVER Brief + Domain-Only Fast Test"]
+    S2 --> S3["reviewer (Claude Sonnet / Opus 5.5 High)\nCross-Family Review + Bounded Tests >= 90"]
     S3 -->|"< 90 (Max 2 Rounds)"| S2
     S3 -->|"2-Round Cap Hit: Attack Premise"| H["Model Upgrade or\nSingle-Point User Decision"]
     S3 -->|">= 90: Merge & Pass"| S4["wiki (Gemini 3.8 Flash)\nAST Graph + Semantic Wiki + PITFALLS.md"]
@@ -58,17 +58,17 @@ flowchart LR
 
 ---
 
-## Heterogeneous Gemini 4 & 3.8 Model Matrix
+## Cross-Family Model Matrix (Gemini 4 Builders + Claude 5.5 Reviewers)
 
-Keep your primary chat session responsive on **`Gemini 4 Neon`** while `swarm-delivery` pins specialized models to each background worker:
+Same-family self-review suffers from correlated blind spots: a Gemini model reviewing Gemini-authored code tends to forgive the exact shortcuts it would have taken itself. **`agy-swarm-forge` pairs high-velocity Gemini 4/3.8 builders with orthogonal Claude 5.5 adversarial reviewers** (while also load-balancing across separate quota pools):
 
 | Swarm Role | Pinned Model | Rationale |
 | :--- | :--- | :--- |
 | **`coordinator`** | Active session model (`Gemini 4 Neon` recommended) | Responsive human-facing orchestration; never blocks the chat writing heavy implementation code |
 | **`scout` / `wiki`** | `gemini-3.8-flash-medium` | Ultra-low-latency AST graph scanning, component reuse auditing, and post-merge wiki compilation |
-| **`author-<slice>`** | `gemini-4-hydrogen-high` | 165+ tok/s high-velocity execution for component variant extensions, standard slices, and unit tests |
-| **`author-<core>`** | `gemini-4-neon-high` | High-capability workhorse for complex cross-module state flows and core abstractions |
-| **`reviewer`** | **`gemini-4-neon-high`** (default)<br>**`gemini-4-carbon-high`** (high-risk escalation) | `Neon High` catches reuse violations and missing UX states at 2x speed for fast rework loops; automatically escalates to `Carbon High` for high-fan-in core hubs, concurrency/race conditions, or auth/billing logic |
+| **`author-<slice>`** | `gemini-4-hydrogen-high` | 165+ tok/s high-velocity execution for component variant extensions, standard slices, and domain unit tests |
+| **`author-<core>`** | `gemini-4-neon-high` | High-capability workhorse for complex cross-module state flows, PGSQL/Redis concurrency, and core abstractions |
+| **`reviewer`** | **`claude-sonnet-5-5-high`** (default)<br>**`claude-opus-5-5-high`** (high-risk escalation)<br>*(Fallback: `gemini-4-neon-high` / `carbon-high`)* | Cross-architecture adversarial review catches subtle abstraction leaks, SQL anti-patterns, and missing UX states that same-family reviewers overlook; escalates to `Claude Opus 5.5 High` for core hubs, concurrency, or auth/billing |
 
 ---
 

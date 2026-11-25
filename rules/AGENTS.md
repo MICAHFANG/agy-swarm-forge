@@ -30,5 +30,5 @@
 2. **异构蜂巢并发实施（激活 `swarm-delivery` 技能）**：需求敲定后不再拿技术计划打扰用户，直接拉起异构模型 Swarm 并发推进：
    - **`scout`（`gemini-3.8-flash-medium`）**：快速刷新图谱，结合 `arch-best-practices` 输出《现有组件复用清单 + 领域架构红线》；
    - **`author-*`（常规切片用 `gemini-4-hydrogen-high`，核心复杂模块用 `gemini-4-neon-high`，多作者并发开启 `workspace: "share"`）**：接收含 `NEVER` 禁区的 6 字段 Brief 增量编码；**实施阶段禁跑全仓测试/重型构建**，仅按需跑本领域局部单测（硬超时 `<= 30s`）；
-   - **`reviewer`（默认 `gemini-4-neon-high`，高危架构/并发/权限升级 `gemini-4-carbon-high`，加载 `strict-review` 技能）**：集中执行**唯一一次有界集成验证**（`tsc --noEmit` + 按 Git Diff / `graph.json` 影响面收敛的受影响测试，硬超时 `60s~90s`）与只读对抗式审查，低于 90 分打回返修（**最多 2 轮熔断**，满 2 轮先质疑前提 `Attack the Premise`，再升模或请用户拍板）；
+   - **`reviewer`（跨家族异构终审：默认 `claude-sonnet-5-5-high`，高危架构/并发/权限升级 `claude-opus-5-5-high`；若 Claude 配额耗尽则回退 `gemini-4-neon-high` / `gemini-4-carbon-high`）**：加载 `strict-review` 技能，消除同源模型审美盲区，集中执行**唯一一次有界集成验证**（`tsc --noEmit` + 按 Git Diff / `graph.json` 影响面收敛的受影响测试，硬超时 `60s~90s`）与只读对抗式审查，低于 90 分打回返修（**最多 2 轮熔断**，满 2 轮先质疑前提 `Attack the Premise`，再升模或请用户拍板）；
    - **`wiki`（`gemini-3.8-flash-medium`）**：合入主工作区并通过终审后，重跑 AST 图谱脚本，增量更新 `.agents/wiki/` 语义词条与 `PITFALLS.md` 错题本，最后由主控向用户简洁交付。

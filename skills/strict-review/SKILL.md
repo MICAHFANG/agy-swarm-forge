@@ -1,9 +1,9 @@
 ---
 name: strict-review
 description: >-
-  对抗式代码审查门禁技能（把 60~70 分半成品打磨至 95 分的质检标准）。供 Swarm 中的 `Neon High`
-  （高危重逻辑场景升级为 `Carbon High`）独立 Reviewer 子代理或单代理审查模式在只读状态下审查复用度、组件变体设计、
-  UI 四态完整性、TS 类型严密性与爆炸半径。
+  跨模型家族对抗式代码审查门禁技能（把 60~70 分半成品打磨至 95 分的质检标准）。默认由异构家族模型
+  `Claude Sonnet 5.5 High`（高危重逻辑场景升级为 `Claude Opus 5.5 High`）在只读状态下审查 Gemini 编码产出，
+  消除同源盲区，严卡复用度、PGSQL/Redis/Hono 架构红线、UI 四态、TS 类型纪律与有界影响面验证。
 ---
 
 # 对抗式严苛代码审查（`strict-review`）
