@@ -17,7 +17,9 @@ description: >-
 提问前先发一句话播报意图，然后并行完成快速侦察：
 1. 若工作区尚无 `.agents/wiki/_generated/COMPONENT_INDEX.md`，先跑一次 `ts-repo-wiki` 的 `scan_ts_graph.mjs` 脚本（毫秒~秒级）。
 2. 查阅 `COMPONENT_INDEX.md`、`MODULE_GRAPH.md`、`SYSTEM_PATTERNS.md` 及与需求直接相关的现有页面/组件源码。
-3. **过滤无效问题**：项目用什么状态库、现有 Button/Modal/Table 长什么样、接口怎么调——凡是代码库已经给出答案的，**你自己消化，严禁去问用户**。
+3. **过滤两类无效问题（绝不拿代码事实与技术实证问题去问用户）**：
+   - **代码/文档可查事实**：项目用什么状态库、现有组件有哪些 `variant`、新库精确版本怎么调（调 `context7` 或读源码即知）——**自己查清，严禁问用户**；
+   - **实验/探测可证事实（Empirical Forks）**：凡是跑一条 `EXPLAIN`、写个 10 行探测脚本或看一眼报错就能分出高下的技术方案分叉——**自己动手验证让结果说话，把 `ask_question` 100% 留给真正的产品行为与体验取舍！**
 
 ### Step 2：梳理“产品与体验决策树”，用 `ask_question` 精准拷问
 

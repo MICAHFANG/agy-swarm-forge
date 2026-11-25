@@ -54,7 +54,7 @@ node "<本技能目录>/scripts/scan_ts_graph.mjs" "<项目根目录绝对路径
 2. **像维护百科词条一样“原位编译更新”，严禁追加流水账（No Changelog Bloat）**：
    - 若本次为某现有组件新增了变体或使用约束，或在某个业务域沉淀了关键状态流转规则，直接修改 `.agents/wiki/SYSTEM_PATTERNS.md` 或 `.agents/wiki/domains/<domain>.md` 对应章节的当前状态描述；
    - 若删除或废弃了旧模块，直接从词条中清理过时描述；
-   - **提炼 Review 错题本（`PITFALLS.md`）**：若本次开发曾被 `reviewer` 打回，将该项目的真实易错点浓缩为 1 行“禁止 X $\rightarrow$ 必须 Y”写入 `.agents/wiki/PITFALLS.md`（合并同类项，总条目严控在 30 条以内，绝不记日期流水账）；
+   - **提炼 Review 错题本与结构化加固（`PITFALLS.md`）**：若本次开发曾被 `reviewer` 打回，将该项目的真实易错点浓缩为 1 行“禁止 X $\rightarrow$ 必须 Y”写入 `.agents/wiki/PITFALLS.md`（总条目严控 <= 30 条，绝不记日期流水账）。**重要**：若发现同类失误已在 `PITFALLS.md` 出现过 2 次以上，说明纯文字提醒无效——必须在汇报中建议按 **“架构收拢唯一入口 > TS 类型锁死 > Lint/脚本门禁 > 行为测试”** 的优先级将其固化进代码结构，固化后即可从 `PITFALLS.md` 移除该文字规则；
    - 更新 `.agents/wiki/INDEX.md` 中的域词条链接表。
 
 ### 4. 可选：周度自我进化巡检（配合 Antigravity `/schedule`）

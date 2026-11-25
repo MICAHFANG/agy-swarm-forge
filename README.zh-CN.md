@@ -32,10 +32,10 @@ flowchart LR
   D --> E["锁定极简契约\n.agents/specs/*.md"]
   E --> F["2. swarm-delivery\n异构模型蜂巢并发推进"]
   subgraph Swarm["异构 Swarm 蜂巢内部闭环"]
-    S1["scout (3.8 Flash)\nAST图谱 & 组件变体复用清单"] --> S2["author-* (Hydrogen / Neon High)\n6字段含NEVER契约 + share隔离编码"]
-    S2 --> S3["reviewer (Neon High / 按需Carbon)\nstrict-review 只读打分 >= 90"]
+    S1["scout (3.8 Flash)\nAST图谱 + 领域架构最佳实践"] --> S2["author-* (Hydrogen / Neon High)\n6字段NEVER契约 + 仅跑本领域秒测"]
+    S2 --> S3["reviewer (Neon High / 按需Carbon)\n唯一一次有界影响面测试 + 严审 >= 90"]
     S3 -->|"未达标打回 (最多2轮)"| S2
-    S3 -->|"满2轮熔断防死循环"| H["主控自动升模或提炼单点决策"]
+    S3 -->|"满2轮先质疑前提防空转"| H["主控自动升模或提炼单点决策"]
     S3 -->|"通过并合入"| S4["wiki (3.8 Flash)\n刷新AST图谱 + Wiki + PITFALLS错题本"]
   end
   F --> Swarm
@@ -50,9 +50,10 @@ flowchart LR
 | :--- | :---: | :--- |
 | **`rules/AGENTS.md`** | 常驻微规则 | 反黑盒一句话意图播报、禁止倾倒冗长技术计划、**组件变体优先（Variant over New Component）**、智能分级与强制口令路由 |
 | **`ts-repo-wiki`** | Skill + Node 脚本 | 零外部依赖安装：自动调用项目本地 `typescript` 编译器 AST（无依赖时自动降级）秒级生成 `.agents/wiki/_generated/` 组件变体枚举表、Mermaid 模块拓扑图与反向依赖索引，配合语义词条与 **`PITFALLS.md` 防重犯错题本**原位更新 |
-| **`grill-spec`** | Skill | 吸收 `/grill-me` 精髓：先静默查代码过滤废话问题，再用 `ask_question`（首选项固定带 `(Recommended)`）逐层敲定交互与 UI 四态，生成极简验收契约 |
-| **`swarm-delivery`** | Skill | 免审冗长技术计划，采用**含 `NEVER` 禁区的 6 字段标准化派单契约**拉起异构多代理并发编码、验证、**最多 2 轮熔断互审**与 Wiki 回写 |
-| **`strict-review`** | Skill | 独立只读终审评分卡：严卡**重复造轮子（30分）、UI四态完整度（25分）、架构同构（20分）、零 `any` 类型严密性（15分）、真实验证证据（10分）**，低于 90 分打回重修（满 2 轮自动熔断上报防空转） |
+| **`arch-best-practices`** | Skill + References + 脚本 | 按需懒加载软件工程与技术栈硬核范式库（**经典分层与设计模式、PostgreSQL + Drizzle 调优、Hono + Redis 高并发、Next.js + 严格 TS**），附带 `find_gold_repos.mjs` 自动过滤低质 Demo 定位顶级生产开源标杆 |
+| **`grill-spec`** | Skill | 吸收 `/grill-me` 与 `pstack` 精髓：代码可查事实与实验可证事实绝不问人，只用带 `(Recommended)` 的选择题敲定产品与交互边界 |
+| **`swarm-delivery`** | Skill | 采用**含 `NEVER` 禁区的 6 字段契约**与**两级有界验证**（Author 禁跑全仓测试，仅跑本领域 `<=30s` 局部单测；Reviewer 统一执行唯一一次带 `60~90s` 硬超时的影响面收敛测试）+ **2 轮质疑前提熔断** |
+| **`strict-review`** | Skill | 实证制只读终审评分卡：严卡**复用与零双轨腐化（25分）、软件架构与 PGSQL/Redis/Hono 红线（25分）、UI四态完整度（20分）、TS类型系统纪律（15分）、有界影响面集成测试（15分）** |
 | **`hooks.json`** | `SessionStart` Hook | 新会话启动时毫秒级检测工作区 `.agents/wiki/` 状态并自动注入上下文提示，消除跨会话失忆 |
 
 ---

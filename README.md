@@ -32,10 +32,10 @@ flowchart LR
   D --> E["Lock Concise Spec\n.agents/specs/*.md"]
   E --> F["2. swarm-delivery\nHeterogeneous Swarm Execution"]
   subgraph Swarm["Autonomous Heterogeneous Swarm Loop"]
-    S1["scout (Gemini 3.8 Flash)\nAST Graph & Component Variant Audit"] --> S2["author-* (Hydrogen / Neon High)\n6-Field NEVER Brief + share Workspace"]
-    S2 --> S3["reviewer (Neon High / Carbon High)\nRead-Only strict-review Gate >= 90/100"]
+    S1["scout (Gemini 3.8 Flash)\nAST Graph + Arch Best Practices"] --> S2["author-* (Hydrogen / Neon High)\n6-Field NEVER Brief + Domain-Only Fast Test"]
+    S2 --> S3["reviewer (Neon High / Carbon High)\nBounded Affected Tests + strict-review >= 90"]
     S3 -->|"< 90 (Max 2 Rounds)"| S2
-    S3 -->|"2-Round Cap Hit: Escalate"| H["Coordinator Model Upgrade\nor Single-Point User Decision"]
+    S3 -->|"2-Round Cap Hit: Attack Premise"| H["Model Upgrade or\nSingle-Point User Decision"]
     S3 -->|">= 90: Merge & Pass"| S4["wiki (Gemini 3.8 Flash)\nAST Graph + Semantic Wiki + PITFALLS.md"]
   end
   F --> Swarm
@@ -50,9 +50,10 @@ flowchart LR
 | :--- | :---: | :--- |
 | **`rules/AGENTS.md`** | Always-On Rule | Anti-blackbox 1-line intent broadcasts, zero bloated implementation plans, **Variant-over-New-Component** enforcement, and smart tiering / forced-swarm routing |
 | **`ts-repo-wiki`** | Skill + AST Script | Zero external dependencies: leverages the repo's own `node_modules/typescript` compiler AST (with instant regex fallback) to generate `.agents/wiki/_generated/COMPONENT_INDEX.md` (union variants, slots, hooks), `MODULE_GRAPH.md` (Mermaid topology + top fan-in hubs), and `graph.json` (blast-radius lookup), paired with a compounding semantic wiki and `PITFALLS.md` anti-repeat-mistake ledger |
-| **`grill-spec`** | Skill | Inspired by `/grill-me`: explores the codebase & wiki silently *before* asking questions, then uses `ask_question` (always leading with a `(Recommended)` option) to resolve product & UX edge states into a concise spec |
-| **`swarm-delivery`** | Skill | Orchestrates a heterogeneous multi-model Swarm using standardized **6-field briefs (`JOB / INPUT / REUSE & NEVER / DONE WELL / HANDOFF / ESCALATE`)** across isolated `share` workspaces, protected by a **Max 2-Round Review Circuit Breaker** |
-| **`strict-review`** | Skill | Read-only adversarial review rubric scoring 5 hard gates: **Reuse & Variant Design (30%)**, **UX 4-State Completeness (25%)**, **Architectural Cohesion (20%)**, **Strict TypeScript Zero-`any` Safety (15%)**, and **Execution Proof (10%)**, with 2-round stall protection |
+| **`arch-best-practices`** | Skill + References + Script | Progressive-disclosure software engineering & stack playbooks (**Software Architecture**, **PostgreSQL + Drizzle**, **Hono + Redis**, **Next.js + Strict TS**) plus `find_gold_repos.mjs` to mine battle-tested production OSS repos instead of tutorial slop |
+| **`grill-spec`** | Skill | Explores codebase & empirical facts *before* asking questions (never asks what code or a quick probe can settle), then uses `ask_question` with `(Recommended)` defaults to lock a concise spec |
+| **`swarm-delivery`** | Skill | Orchestrates heterogeneous Swarms using **6-field `NEVER` briefs**, **Two-Tier Bounded Verification** (authors run domain-local fast tests only; reviewer runs unified affected-scope `tsc` + tests once with hard timeouts), and a **Max 2-Round `Attack-the-Premise` Circuit Breaker** |
+| **`strict-review`** | Skill | Evidence-backed adversarial review rubric scoring **Reuse & Variant Design (25%)**, **Architecture & PGSQL/Redis/Hono Red Lines (25%)**, **UX 4-State Completeness (20%)**, **Type System Discipline (15%)**, and **Bounded Affected Verification (15%)** |
 | **`hooks.json`** | `SessionStart` Hook | Sub-10ms startup check that detects `.agents/wiki/` in the active workspace and injects instant context awareness on turn 1 |
 
 ---

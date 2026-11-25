@@ -19,10 +19,10 @@ description: >-
 | 蜂巢角色 | Roster 命名规范 | 固定绑定模型 ID | `workspace` 模式 | 核心职责 |
 | :--- | :--- | :--- | :--- | :--- |
 | **主控（你）** | `coordinator` | 保持当前会话模型（推荐日常挂 `Gemini 4 Neon`） | — | 只做任务切分、面板调度、冲突仲裁与最终交付汇报，**绝不亲自下场写大段业务代码阻塞响应** |
-| **复用侦察兵** | `scout` | `gemini-3.8-flash-medium` | `inherit` | 秒查 `.agents/wiki/` 与源码，在面板发布《现有组件变体复用与增量改造清单》 |
-| **常规编码/测试工兵** | `author-<slice>` | `gemini-4-hydrogen-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责常规业务切片、在现有组件上新增 `variant`/Props、编写单元测试与边缘态处理 |
-| **核心攻坚工兵** | `author-<core>` | `gemini-4-neon-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责复杂跨模块状态流转、底层抽象改造、高难度交互或性能敏感模块 |
-| **独立对抗终审官** | `reviewer` | 默认 `gemini-4-neon-high`；按需升级 `gemini-4-carbon-high`（见下） | `inherit` | 加载 `strict-review` 技能，**纯只读不改码**；对照 `.agents/specs/` 与复用铁律打分，低于 90 分直接 `@author-*` 打回返修 |
+| **复用侦察兵** | `scout` | `gemini-3.8-flash-medium` | `inherit` | 秒查 `.agents/wiki/` 与 `arch-best-practices`（陌生技术调 `context7` 或 `find_gold_repos.mjs`），发布《组件复用清单 + 领域架构红线》 |
+| **常规编码/领域单测工兵** | `author-<slice>` | `gemini-4-hydrogen-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责常规业务切片、扩展现有组件 `variant`、补齐本领域 DDD 行为单测（**禁跑全仓测试**） |
+| **核心攻坚工兵** | `author-<core>` | `gemini-4-neon-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责复杂跨模块数据建模、PGSQL/Redis 高并发链路与底层抽象改造（**禁跑全仓测试**） |
+| **独立对抗终审与集成验证官** | `reviewer` | 默认 `gemini-4-neon-high`；按需升级 `gemini-4-carbon-high`（见下） | `inherit` | 加载 `strict-review` 与对应 `arch-best-practices` 手册，**纯只读不改业务码**；执行**唯一一次带硬超时的影响面集成验证**并打分 |
 | **图谱记忆官** | `wiki` | `gemini-3.8-flash-medium` | `inherit` | 代码合入主工作区并通过终审后，加载 `ts-repo-wiki` 重跑 AST 图谱脚本并增量编译更新语义 Wiki |
 
 **`reviewer` 模型分级选型规则**：
@@ -49,37 +49,38 @@ description: >-
 
    ```text
    JOB: <一句话说明独占任务目标>
-   INPUT & OWNED FILES: <契约 .agents/specs/<slug>.md、必读 .agents/wiki/PITFALLS.md，以及独占可修改的文件列表>
-   REUSE & NEVER: <必须复用的现有组件/变体（如在 Modal.tsx 扩充 variant='drawer'）；严禁新建的重复组件、严禁触碰的非所属文件>
-   DONE WELL: <3~5 条硬性完成标准：tsc 零报错、单测通过、Loading/Empty/Error/Normal 四态齐全>
-   HANDOFF: <自测全绿后直接 @reviewer 贴出 git diff 摘要与验证命令真实输出（标明 Round 1/2）>
-   ESCALATE IF: <发现需求契约自相矛盾、依赖阻塞，或返修满 2 轮仍无法通过时，立即停止盲改并 @coordinator 说明卡点>
+   INPUT & OWNED FILES: <契约 .agents/specs/<slug>.md、必读 .agents/wiki/PITFALLS.md、必读 arch-best-practices 对应单篇 reference，以及独占可修改文件>
+   REUSE & NEVER: <必须复用的现有组件/变体；严禁新建重复组件、严禁留新旧两套并存 API、严禁在实施阶段跑全量 tsc/全仓测试>
+   DONE WELL: <先定核心数据结构与判别联合类型；PGSQL 零 N+1/外键必索引；Loading/Empty/Error/Normal 四态齐全；本领域局部单测通过（超时 <= 30s）>
+   HANDOFF: <完成后直接 @reviewer 贴出 git diff 摘要与局部单测结果（标明 Round 1/2）>
+   ESCALATE IF: <发现需求契约矛盾、架构草图无法自洽需推倒重来，或返修满 2 轮仍未过时，停止盲改并 @coordinator>
    ```
 
 4. 首回合向用户发 2~3 行简短启动说明，末尾单独一行放 `open_board` 面板入口，结束回合等待唤醒。
 
-### Phase 2：增量编码 + 本地真实验证（Author 内部闭环）
+### Phase 2：增量编码 + 仅本领域极速局部验证（消除重复测试开销！）
 
-要求所有 `author-*` 在提审前必须自行跑通以下验证并在面板贴出关键结果：
-1. **类型与静态检查**：`npx tsc --noEmit`（或项目 `pnpm typecheck` / `npm run lint`）零新增错误；
-2. **单元/集成测试**：运行受影响模块的测试套件，新增逻辑补充针对性测试；
-3. **前端 UI 实测**（若涉及可视页面且本地开发服务可启动）：配合浏览器预览或组件渲染检查确认正常态、空态、加载态、报错态无样式崩坏或控制台报错；
-4. 若使用 `workspace: "share"`，在各自工作区完成清晰 Commit 并在面板报出分支/提交信息。
+为避免多个 `author-*` 与后续 `reviewer` 反复全量跑 `tsc` 和测试拖垮机器，严格执行**两级有界验证**：
+1. **`author-*` 严禁跑全仓测试套件或重型全量构建**！
+2. **仅跑本领域（DDD Slice）定点测试**：若修改的是带核心业务规则的领域服务/工具函数，只针对当前改动目录或测试文件运行局部测试，且**必须附带硬超时（`<= 30s`）**，例如：
+   `npx vitest run src/modules/<domain>/ --testTimeout=10000`（无单测的纯样式/文案微调免跑测试，交由终审统一把关）。
+3. 若使用 `workspace: "share"`，在各自工作区完成清晰 Commit 并在面板报出分支/提交信息后直接移交 `@reviewer`。
 
-### Phase 3：独立对抗式 Review 循环（默认 `Neon High`，高危按需 `Carbon High`，最多 2 轮熔断）
+### Phase 3：唯一一次有界集成测试 + 独立对抗式 Review（最多 2 轮熔断）
 
-1. `reviewer`（默认 `gemini-4-neon-high`，高危场景 `gemini-4-carbon-high`）加载 `strict-review` 技能，逐项核查：
-   - 是否违反“复用与变体优先”私自造轮子，或重犯 `.agents/wiki/PITFALLS.md` 中的历史错题？
-   - 是否完整覆盖 `.agents/specs/<slug>.md` 的所有交互分支与异常四态？
-   - 是否有任何类型逃逸（`any` / 强转）或回归风险（通过 `.agents/wiki/_generated/graph.json` 核查被修改文件的上游调用方 `importedBy`）？
-2. **返修闭环与“最多 2 轮（Max 2 Rounds）”硬熔断机制**：
-   - **Round 1 未满 90 分（或含 Blocker/Major）**：`reviewer` 直接 `@author-*` 给出精确到文件行号的修复指令，`author-*` 修复重验后发 `Round 2/2` 复审；
-   - **Round 2 仍未满 90 分（触发熔断，严禁无限乒乓空烧配额！）**：`reviewer` 不再退回给原 Author 盲改，而是直接 `@coordinator [ESCALATE after 2 rounds]` 报出剩余未解分歧。主控此时二选一处理：
-     1. 若原 Author 是 `gemini-4-hydrogen-high` 因复杂逻辑卡壳，用 `swarm{action: "model", name: "author-...", model: "gemini-4-neon-high"}` 升级模型做最后一次定点收敛；
-     2. 若属于需求边界或产品取舍冲突，立即用 `ask_question`（带 `(Recommended)`）向用户请示拍板。
-3. **达到 >= 90 分且验证全绿**：
-   - 若 Author 使用了 `workspace: "share"`，先将其改动干净合入主工作区（cherry-pick / merge）并跑一次集成 `tsc --noEmit` 确认零冲突；
-   - 随后唤醒 `@wiki` 执行知识库与错题本同步。
+1. **合入与有界集成门禁（只跑 1 次，限范围 + 限超时！）**：
+   - 若多 Author 使用了 `workspace: "share"`，先将各分支干净合入集成工作区；
+   - 由 `reviewer` 统一执行 **唯一一次** 类型检查与**按影响面收敛（Affected Scope）的测试**，**严禁无边界一把梭跑全仓慢测试/E2E**，命令必须设超时上限（`60s~90s`）：
+     - 类型检查：`npx tsc --noEmit`（Monorepo 优先只跑受影响包 `pnpm --filter ...[HEAD~1] typecheck`）；
+     - 影响面测试：利用 `.agents/wiki/_generated/graph.json` 的 `importedBy` 或测试框架增量能力只测受波及范围（如 `npx vitest related <changed-files> --run` 或 `pnpm --filter ...[HEAD~1] test`），若超时立即中止并收缩至直接调用方测试集。
+2. `reviewer`（默认 `gemini-4-neon-high`，高危场景 `gemini-4-carbon-high`）加载 `strict-review` 与触及领域的 `arch-best-practices/references/*.md`，逐项核查：
+   - **防造轮子与防双轨腐化**：是否私自新建重复组件，或留下了新旧两套并存 API？
+   - **软件工程与领域最佳实践**：是否存在浅模块纯透传、PGSQL 循环 N+1 / 漏外键索引 / `OFFSET` 深分页 / 事务内网络 IO、Redis 无 TTL 或循环读写、TS 松散可选包/裸 `as`？
+   - **完整四态与证据制**：所有 `[Blocker]` / `[Major]` 必须指出确切 `文件:行号` 与触发失败的真实执行路径（拒绝无根据的主观挑刺）。
+3. **返修闭环、“质疑前提（Attack the Premise）”与最多 2 轮熔断**：
+   - **Round 1 未满 90 分（或含 Blocker/Major）**：`reviewer` 直接 `@author-*` 给出精确修复指令，`author-*` 修复后发 `Round 2/2` 复审；
+   - **Round 2 仍未满 90 分（触发熔断，严禁进入第 3 轮盲修！）**：`reviewer` 直接 `@coordinator [ESCALATE after 2 rounds]`。主控必须先执行 **Attack the Premise**——写出前两轮修复共同依赖的底层假设并检验该假设本身是否错误（若架构形状本身错了则推倒重画，不在烂底座上打补丁），随后将 `Hydrogen` 升级为 `Neon High` 收敛，或用 `ask_question` 请用户拍板。
+4. **达到 >= 90 分且有界集成验证全绿**：唤醒 `@wiki` 执行知识库与错题本同步。
 
 ### Phase 4：Wiki 与错题本增量回写，干净收尾
 

@@ -14,32 +14,36 @@ description: >-
 
 1. 本次需求契约：`.agents/specs/<slug>.md`（若有）或任务原始指令；
 2. 仓库既有资产与历史错题本：`.agents/wiki/_generated/COMPONENT_INDEX.md`、`.agents/wiki/_generated/graph.json`、`.agents/wiki/SYSTEM_PATTERNS.md` 及 `.agents/wiki/PITFALLS.md`；
-3. 实际代码变更：`git status` 与完整 `git diff`（不仅看改了哪几行，还要读被改函数与上下游调用方的完整上下文）。
+3. **对应领域的 `arch-best-practices/references/*.md` 手册**（按改动触及面按需选读：`software-architecture.md`、`postgres-drizzle-data.md`、`hono-redis-backend.md` 或 `nextjs-ts-frontend.md`）；
+4. 实际代码变更：`git status` 与完整 `git diff`（不仅看改了哪几行，还要读被改函数与上下游调用方的完整上下文）。
 
 ---
 
-## 五大一票否决门禁（评分卡，满分 100 分）
+## 五大一票否决门禁（评分卡，满分 100 分；仅保留有实证支撑的问题！）
 
-### 1. 复用度与组件变体设计（权重 30 分）— *最高优先级*
-- **严查重复造轮子**：对于每一个**新建**的 `.ts` / `.tsx` / `.vue` 文件，核对 `COMPONENT_INDEX.md`：仓库里是否已有职责高度重叠的组件、弹窗、表格、表单项、Hook 或工具函数？
-- **变体优先原则**：如果本来在原有组件上扩展一个 `variant` / `size` / `slot` / 可选 Prop 就能优雅支持，Author 却另起炉灶复制粘贴了一个新组件，**直接判 `[Blocker]` 打回重构！**
-- **反向防过度耦合**：若确实扩展了原组件变体，检查默认值是否 100% 向后兼容？用 `graph.json` 的 `importedBy` 检查所有既有调用方是否零破坏？
+> **证据制铁律（Proven Findings Only）**：提出的每一条 `[Blocker]` 或 `[Major]` 必须指明真实 `文件:行号` 及具体触发错误的输入/调用链（或验证命令报错），严禁凭空臆测虚构风险逼迫 Author 做无意义折腾。
 
-### 2. 架构同构与可维护性（权重 20 分）
-- 新代码是否严格沿用周边模块的目录分层、命名风格、状态管理、API 请求封装、国际化与样式方案？
-- 严禁出现“为了图快在组件里裸写 `fetch`、硬编码魔法常量、或者自己发明一套跟全仓格格不入的新模式”。
+### 1. 复用度、变体设计与零双轨腐化（权重 25 分）
+- **严查重复造轮子**：核对 `COMPONENT_INDEX.md`，凡能通过在既有组件上扩展 `variant / size / slot` 实现却另起炉灶新建组件的，直接判 `[Blocker]`！
+- **消灭“一件事两套写法”**：若重构引入了新入口却把旧入口留在原地未迁移删除（导致后续盲盒 Agent 随机乱抄），判 `[Major]` 要求同批清理；用 `graph.json` 的 `importedBy` 核查爆炸半径与那条“确保此改动安全的唯一核心事实（The One Safety Fact）”。
 
-### 3. 需求完整度与边界四态（权重 25 分）— *60 分与 95 分的分水岭*
+### 2. 软件工程范式与 PGSQL / Redis / Hono 架构红线（权重 25 分）
+对照 `arch-best-practices` 严抓以下反模式：
+- **架构臭味**：无任何策略价值的浅模块纯透传层、按执行先后拆碎的 Temporal Decomposition、把底层存储结构直接泄漏到前端/路由外、违反 YAGNI 为单一实现套空壳 `IXxxService` 接口；
+- **PostgreSQL & Drizzle 红线**：循环内查库（N+1）、外键列漏建索引、在索引列套函数或滥用 `NOT IN`、大表 `OFFSET` 深分页与实时 `COUNT(*)`、**在 `db.transaction()` 内执行任何外部 HTTP/网络调用（引发 `idle in transaction` 与 MVCC 膨胀）**；
+- **Hono & Redis 红线**：串行 `await` 瀑布流、循环内逐条调 Redis（未用 `mget`/Pipeline）、缓存未设带随机抖动的 TTL、关键写操作无幂等保护、外部 `fetch` 无超时。
+
+### 3. 需求完整度与边界四态（权重 20 分）— *60 分与 95 分的分水岭*
 逐条核对 `.agents/specs/<slug>.md` 及真实用户场景：
-- **UI 四态齐全**：Loading 骨架/防连点禁用态、空数据态（Empty State）、接口失败/超时错误提示与重试路径、正常态是否全部闭环？
-- **极端输入与交互细节**：超长文本截断/换行、快速切换竞态取消（AbortController / 过期请求丢弃）、弹窗关闭状态重置、键盘回车/Esc 行为是否考虑周全？
+- **UI 四态与交互细节**：Loading 防连点态、Empty 空态、Error 提示与重试态、Normal 正常态是否闭环？是否滥用 `useEffect` 同步派生状态或出现布尔 Props 爆炸？
 
-### 4. TypeScript 类型严密性（权重 15 分）
-- 严禁新增 `any`、`as unknown as T`、`@ts-ignore`、`@ts-expect-error` 掩盖类型问题；
-- 组件互斥变体 Props 是否使用了清晰的联合类型（Discriminated Union）而非一堆松散冲突的 boolean？
+### 4. TypeScript 类型系统纪律（权重 15 分）
+- 严禁新增 `any`、裸 `as` 强转、`@ts-ignore`；外部输入是否在系统边界通过单一 Schema（如 Zod）一次性解析推导？互斥状态是否采用了判别联合类型 + `never` 穷尽检查（而非松散可选字段包）？
 
-### 5. 真实验证证据（权重 10 分）
-- Author 是否提供了真实的 `tsc --noEmit`、Lint、测试运行输出（前端改动是否核实了无运行时异常）？若发现测试只测了假 Mock 而没覆盖真实分支，判 `[Major]` 要求补齐。
+### 5. 有界集成验证（权重 15 分 — *由你在本阶段统一跑 1 次！*）
+- 由于 `author-*` 阶段仅跑本领域局部秒测，你在终审阶段负责执行 **唯一一次有界集成验证**：
+  1. 运行类型检查（`npx tsc --noEmit` 或受影响包 `typecheck`）；
+  2. **按影响面收敛运行测试并强制设超时上限（`60s~90s`）**：优先跑受改动及 `importedBy` 波及的测试集（如 `npx vitest related <changed-files> --run` 或指定受影响领域目录，严禁无超时全量裸跑整个巨型仓库测试或慢 E2E！）；若涉及前端可视改动且本地服务可用，配合浏览器核验真实渲染表现。
 
 ---
 
