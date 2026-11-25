@@ -1,0 +1,11 @@
+{
+  "swarm-forge-session-bootstrap": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "./scripts/session_start.sh",
+        "timeout": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <defs>
+    <linearGradient id="hexGrad" x1="32" y1="32" x2="224" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+    <linearGradient id="coreGrad" x1="88" y1="88" x2="168" y2="168" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#F97316"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer Hexagon Frame (12% safe margin) -->
+  <polygon points="128,28 214,78 214,178 128,228 42,178 42,78" stroke="url(#hexGrad)" stroke-width="12" stroke-linejoin="round" fill="#0F172A" fill-opacity="0.88"/>
+  <!-- Graph Edges -->
+  <line x1="128" y1="74" x2="80" y2="154" stroke="#94A3B8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="128" y1="74" x2="176" y2="154" stroke="#94A3B8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="80" y1="154" x2="176" y2="154" stroke="#94A3B8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="128" y1="128" x2="128" y2="74" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="128" y1="128" x2="80" y2="154" stroke="#818CF8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="128" y1="128" x2="176" y2="154" stroke="#C084FC" stroke-width="6" stroke-linecap="round"/>
+  <!-- Outer Swarm Nodes -->
+  <circle cx="128" cy="74" r="16" fill="#38BDF8"/>
+  <circle cx="80" cy="154" r="16" fill="#818CF8"/>
+  <circle cx="176" cy="154" r="16" fill="#C084FC"/>
+  <!-- Central Forge Core -->
+  <polygon points="128,104 149,116 149,140 128,152 107,140 107,116" fill="url(#coreGrad)"/>
+</svg>

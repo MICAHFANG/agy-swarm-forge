@@ -1,0 +1,20 @@
+{
+  "name": "swarm-forge",
+  "displayName": "Swarm Forge",
+  "version": "1.0.0",
+  "author": {
+    "name": "MICAHFANG",
+    "url": "https://github.com/MICAHFANG"
+  },
+  "description": "TypeScript 全栈研发方法论套件：Grill-Me 交互式需求拷问、TS AST 组件变体与依赖图谱、复用优先审计、异构模型 Swarm 蜂巢并发交付（3.8 Flash / Hydrogen / Neon / 按需 Carbon）及独立对抗式 Review 闭环。",
+  "logo": "assets/logo.svg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MICAHFANG/agy-swarm-forge"
+  },
+  "suggestedPrompts": [
+    "扫描当前 TS 仓库，生成 .agents/wiki 组件变体索引与模块依赖图谱",
+    "我想加一个新功能，先按 grill-spec 拷问我对齐细节，再起 Swarm 并发实现",
+    "按 strict-review 标准对当前未提交改动做一次复用度与完整性严苛审查"
+  ]
+}
