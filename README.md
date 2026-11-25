@@ -32,10 +32,11 @@ flowchart LR
   D --> E["Lock Concise Spec\n.agents/specs/*.md"]
   E --> F["2. swarm-delivery\nHeterogeneous Swarm Execution"]
   subgraph Swarm["Autonomous Heterogeneous Swarm Loop"]
-    S1["scout (Gemini 3.8 Flash)\nAST Graph & Component Variant Audit"] --> S2["author-* (Hydrogen / Neon High)\nIsolated share Workspace Coding + Tests"]
+    S1["scout (Gemini 3.8 Flash)\nAST Graph & Component Variant Audit"] --> S2["author-* (Hydrogen / Neon High)\n6-Field NEVER Brief + share Workspace"]
     S2 --> S3["reviewer (Neon High / Carbon High)\nRead-Only strict-review Gate >= 90/100"]
-    S3 -->|"< 90: Changes Requested"| S2
-    S3 -->|">= 90: Merge & Pass"| S4["wiki (Gemini 3.8 Flash)\nRefresh AST Graph & Compile Semantic Wiki"]
+    S3 -->|"< 90 (Max 2 Rounds)"| S2
+    S3 -->|"2-Round Cap Hit: Escalate"| H["Coordinator Model Upgrade\nor Single-Point User Decision"]
+    S3 -->|">= 90: Merge & Pass"| S4["wiki (Gemini 3.8 Flash)\nAST Graph + Semantic Wiki + PITFALLS.md"]
   end
   F --> Swarm
   Swarm --> G["Deliver 95% Production-Ready Result"]
@@ -48,10 +49,10 @@ flowchart LR
 | Module | Kind | What It Does |
 | :--- | :---: | :--- |
 | **`rules/AGENTS.md`** | Always-On Rule | Anti-blackbox 1-line intent broadcasts, zero bloated implementation plans, **Variant-over-New-Component** enforcement, and smart tiering / forced-swarm routing |
-| **`ts-repo-wiki`** | Skill + AST Script | Zero external dependencies: leverages the repo's own `node_modules/typescript` compiler AST (with instant regex fallback) to generate `.agents/wiki/_generated/COMPONENT_INDEX.md` (union variants, slots, hooks), `MODULE_GRAPH.md` (Mermaid topology + top fan-in hubs), and `graph.json` (blast-radius lookup), paired with a Karpathy-style compounding semantic wiki |
+| **`ts-repo-wiki`** | Skill + AST Script | Zero external dependencies: leverages the repo's own `node_modules/typescript` compiler AST (with instant regex fallback) to generate `.agents/wiki/_generated/COMPONENT_INDEX.md` (union variants, slots, hooks), `MODULE_GRAPH.md` (Mermaid topology + top fan-in hubs), and `graph.json` (blast-radius lookup), paired with a compounding semantic wiki and `PITFALLS.md` anti-repeat-mistake ledger |
 | **`grill-spec`** | Skill | Inspired by `/grill-me`: explores the codebase & wiki silently *before* asking questions, then uses `ask_question` (always leading with a `(Recommended)` option) to resolve product & UX edge states into a concise spec |
-| **`swarm-delivery`** | Skill | Orchestrates a heterogeneous multi-model Swarm across isolated `share` workspaces—skipping plan-review friction and iterating internally until verification and review gates pass |
-| **`strict-review`** | Skill | Read-only adversarial review rubric scoring 5 hard gates: **Reuse & Variant Design (30%)**, **UX 4-State Completeness (25%)**, **Architectural Cohesion (20%)**, **Strict TypeScript Zero-`any` Safety (15%)**, and **Execution Proof (10%)** |
+| **`swarm-delivery`** | Skill | Orchestrates a heterogeneous multi-model Swarm using standardized **6-field briefs (`JOB / INPUT / REUSE & NEVER / DONE WELL / HANDOFF / ESCALATE`)** across isolated `share` workspaces, protected by a **Max 2-Round Review Circuit Breaker** |
+| **`strict-review`** | Skill | Read-only adversarial review rubric scoring 5 hard gates: **Reuse & Variant Design (30%)**, **UX 4-State Completeness (25%)**, **Architectural Cohesion (20%)**, **Strict TypeScript Zero-`any` Safety (15%)**, and **Execution Proof (10%)**, with 2-round stall protection |
 | **`hooks.json`** | `SessionStart` Hook | Sub-10ms startup check that detects `.agents/wiki/` in the active workspace and injects instant context awareness on turn 1 |
 
 ---

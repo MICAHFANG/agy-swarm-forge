@@ -9,7 +9,7 @@
 
 ## 2. 复用优先与增量演进铁律（防重复造轮子）
 
-- **先查图谱再动手**：新增任何文件、UI 组件、Hook 或业务模块前，**必须先查阅 `.agents/wiki/INDEX.md` 与 `.agents/wiki/_generated/COMPONENT_INDEX.md`、`MODULE_GRAPH.md`**（若项目尚未生成且非单行微调，先激活 `ts-repo-wiki` 技能生成）。
+- **先查图谱与错题本再动手**：新增任何文件、UI 组件、Hook 或业务模块前，**必须先查阅 `.agents/wiki/INDEX.md`、`.agents/wiki/PITFALLS.md` 与 `.agents/wiki/_generated/COMPONENT_INDEX.md`、`MODULE_GRAPH.md`**（若项目尚未生成且非单行微调，先激活 `ts-repo-wiki` 技能生成），避免重犯历史扣分项。
 - **组件变体优先（Variant over New Component）**：在前端/TS 项目中，遇到相似 UI 或交互诉求时，默认**优先在原有组件上扩展 `variant` / `size` / `mode` / `slot` Props 或组合现有基础组件与 Hook**。只有当职责完全正交、强行合并会导致 Props 严重污染时，才允许新建组件。
 - **增量演进优先（Incremental over Parallel Silo）**：大项目中加功能时，必须顺着现有目录分层、状态流转、请求封装和错误处理链路做增量挂载，严禁脱离既有体系从零平铺一套孤立的新模块。
 
@@ -28,6 +28,6 @@
 1. **需求拷问对齐（激活 `grill-spec` 技能）**：先静默查阅代码与 `.agents/wiki/`（代码能查到的绝不问用户），再用 `ask_question` 工具针对产品行为、UI 四态（加载/空/错/正常）和交互取舍逐层提问，**首选项必须以 `(Recommended)` 开头**。
 2. **异构蜂巢并发实施（激活 `swarm-delivery` 技能）**：需求敲定后不再拿技术计划打扰用户，直接拉起异构模型 Swarm 并发推进：
    - **`scout`（`gemini-3.8-flash-medium`）**：快速刷新图谱并输出《现有组件复用与变体改造清单》；
-   - **`author-*`（常规/测试用 `gemini-4-hydrogen-high`，核心复杂模块用 `gemini-4-neon-high`，多作者并发开启 `workspace: "share"`）**：严格按复用清单增量编码并完成本地 `tsc`/测试/UI 验证；
-   - **`reviewer`（默认 `gemini-4-neon-high`，涉及底层核心底座重写/复杂并发状态机/高危权限计费或用户点名时升级 `gemini-4-carbon-high`，加载 `strict-review` 技能）**：只读对抗式审查，对照需求契约与复用铁律打分，低于 90 分直接打回给 `author` 返修，不烦用户；
-   - **`wiki`（`gemini-3.8-flash-medium`）**：合入主工作区并通过终审后，重跑 AST 图谱脚本并增量更新 `.agents/wiki/` 语义词条，最后由主控向用户简洁交付。
+   - **`author-*`（常规/测试用 `gemini-4-hydrogen-high`，核心复杂模块用 `gemini-4-neon-high`，多作者并发开启 `workspace: "share"`）**：接收含 `NEVER` 禁区的 6 字段标准化 Brief，严格按复用清单增量编码并完成本地 `tsc`/测试/UI 验证；
+   - **`reviewer`（默认 `gemini-4-neon-high`，涉及底层核心底座重写/复杂并发状态机/高危权限计费或用户点名时升级 `gemini-4-carbon-high`，加载 `strict-review` 技能）**：只读对抗式审查，低于 90 分打回返修（**严格执行最多 2 轮熔断上限**，满 2 轮仍未过则停止空转，升级模型或交主控提炼单点决策问用户）；
+   - **`wiki`（`gemini-3.8-flash-medium`）**：合入主工作区并通过终审后，重跑 AST 图谱脚本，增量更新 `.agents/wiki/` 语义词条与 `PITFALLS.md` 错题本，最后由主控向用户简洁交付。

@@ -13,7 +13,7 @@ description: >-
 ## 审查前必读上下文
 
 1. 本次需求契约：`.agents/specs/<slug>.md`（若有）或任务原始指令；
-2. 仓库既有资产索引：`.agents/wiki/_generated/COMPONENT_INDEX.md`、`.agents/wiki/_generated/graph.json` 及 `.agents/wiki/SYSTEM_PATTERNS.md`；
+2. 仓库既有资产与历史错题本：`.agents/wiki/_generated/COMPONENT_INDEX.md`、`.agents/wiki/_generated/graph.json`、`.agents/wiki/SYSTEM_PATTERNS.md` 及 `.agents/wiki/PITFALLS.md`；
 3. 实际代码变更：`git status` 与完整 `git diff`（不仅看改了哪几行，还要读被改函数与上下游调用方的完整上下文）。
 
 ---
@@ -43,17 +43,18 @@ description: >-
 
 ---
 
-## 裁决输出格式与流转规则
+## 裁决输出格式与最多 2 轮熔断规则（Max 2 Rounds Cap）
 
-按以下结构输出极简审查报告：
+按以下结构输出极简审查报告（必须标明当前第几轮审查 `Round 1/2` 或 `Round 2/2`）：
 
 ```markdown
-### [Review 裁决] 得分：<XX>/100 — <PASS | CHANGES_REQUESTED>
+### [Review 裁决 | Round <1|2>/2] 得分：<XX>/100 — <PASS | CHANGES_REQUESTED | ESCALATE>
 
 - **[Blocker]** `文件路径:行号` — 问题描述与具体改造指令（例如：删除新建的 `UserConfirmModal.tsx`，改为在既有 `ConfirmDialog.tsx` 上扩展 `variant="danger"`）
-- **[Major]** `文件路径:行号` — 漏掉的边界态 / 类型隐患 / 回归风险及修复建议
+- **[Major]** `文件路径:行号` — 漏掉的边界态 / 类型隐患 / 历史错题重犯 / 回归风险及修复建议
 - **[Nit]** `文件路径:行号` — 可选小优化（不阻塞放行）
 ```
 
-- **得分 < 90 分，或存在任何 `[Blocker]` / `[Major]`**：裁决为 `CHANGES_REQUESTED`，在 Swarm 面板直接 `@author-<name>` 修复，**严禁唤醒 `@coordinator` 交差**。
+- **Round 1 得分 < 90 分（或含 `[Blocker]` / `[Major]`）**：裁决为 `CHANGES_REQUESTED`，在 Swarm 面板直接 `@author-<name>` 修复，**严禁唤醒 `@coordinator` 交差**。
+- **Round 2 得分仍 < 90 分（触发 2 轮熔断，严禁进入第 3 轮无限拉锯！）**：裁决为 `ESCALATE`，**停止退回给原 Author**，直接 `@coordinator [ESCALATE after 2 rounds]` 简明列出剩余未达标项及卡点原因（供主控升级模型或请用户拍板）。
 - **得分 >= 90 分，且零 `[Blocker]` / `[Major]`**：裁决为 `PASS`，按流水线唤醒下一节点（如合入后唤醒 `@wiki` 或通知 `@coordinator` 交付）。

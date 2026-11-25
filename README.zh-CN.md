@@ -32,10 +32,11 @@ flowchart LR
   D --> E["锁定极简契约\n.agents/specs/*.md"]
   E --> F["2. swarm-delivery\n异构模型蜂巢并发推进"]
   subgraph Swarm["异构 Swarm 蜂巢内部闭环"]
-    S1["scout (3.8 Flash)\nAST图谱 & 组件变体复用清单"] --> S2["author-* (Hydrogen / Neon High)\nshare隔离工作区增量编码 + 自测"]
+    S1["scout (3.8 Flash)\nAST图谱 & 组件变体复用清单"] --> S2["author-* (Hydrogen / Neon High)\n6字段含NEVER契约 + share隔离编码"]
     S2 --> S3["reviewer (Neon High / 按需Carbon)\nstrict-review 只读打分 >= 90"]
-    S3 -->|"未达标打回重修"| S2
-    S3 -->|"通过并合入"| S4["wiki (3.8 Flash)\n刷新AST图谱 & 增量编译Wiki"]
+    S3 -->|"未达标打回 (最多2轮)"| S2
+    S3 -->|"满2轮熔断防死循环"| H["主控自动升模或提炼单点决策"]
+    S3 -->|"通过并合入"| S4["wiki (3.8 Flash)\n刷新AST图谱 + Wiki + PITFALLS错题本"]
   end
   F --> Swarm
   Swarm --> G["一次性向用户交付 95 分成品"]
@@ -48,10 +49,10 @@ flowchart LR
 | 组件 | 类型 | 作用说明 |
 | :--- | :---: | :--- |
 | **`rules/AGENTS.md`** | 常驻微规则 | 反黑盒一句话意图播报、禁止倾倒冗长技术计划、**组件变体优先（Variant over New Component）**、智能分级与强制口令路由 |
-| **`ts-repo-wiki`** | Skill + Node 脚本 | 零外部依赖安装：自动调用项目本地 `typescript` 编译器 AST（无依赖时自动降级）秒级生成 `.agents/wiki/_generated/` 组件变体枚举表、Mermaid 模块拓扑图与反向依赖索引，配合 Karpathy `llm-wiki` 风格原位更新业务语义词条 |
+| **`ts-repo-wiki`** | Skill + Node 脚本 | 零外部依赖安装：自动调用项目本地 `typescript` 编译器 AST（无依赖时自动降级）秒级生成 `.agents/wiki/_generated/` 组件变体枚举表、Mermaid 模块拓扑图与反向依赖索引，配合语义词条与 **`PITFALLS.md` 防重犯错题本**原位更新 |
 | **`grill-spec`** | Skill | 吸收 `/grill-me` 精髓：先静默查代码过滤废话问题，再用 `ask_question`（首选项固定带 `(Recommended)`）逐层敲定交互与 UI 四态，生成极简验收契约 |
-| **`swarm-delivery`** | Skill | 免审冗长技术计划，按异构模型矩阵拉起多代理并发编码、验证、互审与 Wiki 回写 |
-| **`strict-review`** | Skill | 独立只读终审评分卡：严卡**重复造轮子（30分）、UI四态完整度（25分）、架构同构（20分）、零 `any` 类型严密性（15分）、真实验证证据（10分）**，低于 90 分内部打回重修 |
+| **`swarm-delivery`** | Skill | 免审冗长技术计划，采用**含 `NEVER` 禁区的 6 字段标准化派单契约**拉起异构多代理并发编码、验证、**最多 2 轮熔断互审**与 Wiki 回写 |
+| **`strict-review`** | Skill | 独立只读终审评分卡：严卡**重复造轮子（30分）、UI四态完整度（25分）、架构同构（20分）、零 `any` 类型严密性（15分）、真实验证证据（10分）**，低于 90 分打回重修（满 2 轮自动熔断上报防空转） |
 | **`hooks.json`** | `SessionStart` Hook | 新会话启动时毫秒级检测工作区 `.agents/wiki/` 状态并自动注入上下文提示，消除跨会话失忆 |
 
 ---

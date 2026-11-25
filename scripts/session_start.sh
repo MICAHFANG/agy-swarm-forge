@@ -18,7 +18,7 @@ if [ -z "$WS" ] || [ ! -d "$WS" ]; then
 fi
 
 if [ -f "$WS/.agents/wiki/INDEX.md" ]; then
-  MSG="[Swarm Forge] 当前工作区已存在项目知识库与图谱索引 ($WS/.agents/wiki/INDEX.md 及 _generated/COMPONENT_INDEX.md、MODULE_GRAPH.md)。涉及功能开发、组件修改或定位代码时，请优先查阅它们以复用现有组件变体与模块架构。"
+  MSG="[Swarm Forge] 当前工作区已存在项目知识库与图谱索引 ($WS/.agents/wiki/INDEX.md、PITFALLS.md 及 _generated/COMPONENT_INDEX.md、MODULE_GRAPH.md)。涉及功能开发、组件修改或定位代码时，请优先查阅它们以复用现有组件变体并规避历史高频踩坑点。"
   if command -v jq >/dev/null 2>&1; then
     jq -cn --arg m "$MSG" '{injectSteps:[{systemMessage:{systemMessage:$m}}]}'
   else

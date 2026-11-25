@@ -692,6 +692,7 @@ if (!fs.existsSync(indexPath)) {
     `- [组件变体与 Hooks 清单](./_generated/COMPONENT_INDEX.md) — **新建任何组件/Hook 前必查**`,
     `- [模块依赖图谱与爆炸半径](./_generated/MODULE_GRAPH.md) — **跨模块改动与定位实现必查**`,
     `- [系统技术约定与设计模式](./SYSTEM_PATTERNS.md) — 状态管理、接口请求、样式与变体扩展规范`,
+    `- [高频踩坑与错题本](./PITFALLS.md) — **编码与 Review 前必读，防止重犯历史扣分项**`,
     ``,
     `## 2. 业务域词条（Domains）`,
     `_随着功能迭代在 \`./domains/\` 下按模块沉淀，原位更新当前设计，不记流水账。_`,
@@ -716,6 +717,18 @@ if (!fs.existsSync(patternsPath)) {
     ``,
     `## 3. 增量开发禁区`,
     `- 严禁绕过既有请求层裸写 \`fetch\` 或脱离基础组件库重复造弹窗/表格/按钮。`,
+    ``
+  ].join('\n'), 'utf8');
+}
+
+const pitfallsPath = path.join(wikiDir, 'PITFALLS.md');
+if (!fs.existsSync(pitfallsPath)) {
+  fs.writeFileSync(pitfallsPath, [
+    `# 项目高频踩坑与错题本（Pitfalls & Guardrails）`,
+    ``,
+    `> 本文件记录历次 \`strict-review\` 打回暴露出的真实项目易错点（原位去重合并，严控在 30 条以内，不记日期流水账）。所有 Author 动工前必读：`,
+    ``,
+    `- _暂无历史打回记录；首次发生 Review 返修后由 \`wiki\` 节点自动提炼沉淀。_`,
     ``
   ].join('\n'), 'utf8');
 }

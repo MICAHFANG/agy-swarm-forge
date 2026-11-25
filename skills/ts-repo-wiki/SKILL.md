@@ -16,6 +16,7 @@ description: >-
 .agents/wiki/
 ├── INDEX.md                      # 知识库总入口（导航 + 模块职责速览，LLM 增量维护）
 ├── SYSTEM_PATTERNS.md            # 技术栈约定、状态/请求模式、UI 组件扩展规范（LLM 增量维护）
+├── PITFALLS.md                   # 高频踩坑与 Review 打回错题本（严控 <= 30 条，原位去重更新）
 ├── domains/                      # 按业务域/核心特性划分的语义词条卡片（按需创建，增量覆写）
 │   └── <domain>.md
 └── _generated/                   # 脚本自动生成（禁止手改，随时重跑覆盖）
@@ -53,7 +54,12 @@ node "<本技能目录>/scripts/scan_ts_graph.mjs" "<项目根目录绝对路径
 2. **像维护百科词条一样“原位编译更新”，严禁追加流水账（No Changelog Bloat）**：
    - 若本次为某现有组件新增了变体或使用约束，或在某个业务域沉淀了关键状态流转规则，直接修改 `.agents/wiki/SYSTEM_PATTERNS.md` 或 `.agents/wiki/domains/<domain>.md` 对应章节的当前状态描述；
    - 若删除或废弃了旧模块，直接从词条中清理过时描述；
+   - **提炼 Review 错题本（`PITFALLS.md`）**：若本次开发曾被 `reviewer` 打回，将该项目的真实易错点浓缩为 1 行“禁止 X $\rightarrow$ 必须 Y”写入 `.agents/wiki/PITFALLS.md`（合并同类项，总条目严控在 30 条以内，绝不记日期流水账）；
    - 更新 `.agents/wiki/INDEX.md` 中的域词条链接表。
+
+### 4. 可选：周度自我进化巡检（配合 Antigravity `/schedule`）
+
+若用户希望定期迭代团队规范，可建议创建每周一次的定时任务（运行在 `Gemini 4 Neon`）：读取 `.agents/wiki/PITFALLS.md` 中反复出现的最高频痛点，向用户提议 **唯一 1 条** 最具杠杆率的 `SYSTEM_PATTERNS.md` 或项目级 `.agents/rules/` 改进草案，待用户确认后生效。
 
 ## 检索与影响面分析技巧（供日常查询使用）
 

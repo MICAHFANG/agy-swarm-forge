@@ -45,11 +45,17 @@ description: >-
 2. **文件所有权硬隔离**：按不重叠的文件/模块边界切分 `author-*`（严禁两个 Author 改同一批文件！）。
    - 若你在 `grill-spec` 阶段已完全摸清需复用的组件和文件边界，首回合可直接同时添加 `author-*`、`reviewer`、`wiki`；
    - 若项目较大、复用关系尚未完全摸清，首回合先添加 `scout`、`reviewer`、`wiki`（或让 `author-*` 等待 `scout` 的复用清单 `#seq`）。
-3. **每个 Worker 的 `brief` 必须自包含**（Worker 看不到主对话历史！），写明：
-   - 需求契约路径（`.agents/specs/<slug>.md`）与 `.agents/wiki/` 路径；
-   - 它独占负责的文件范围与**严禁触碰的边界**；
-   - **明确复用指令**（例如：“复用 `src/components/Modal.tsx` 新增 `variant='drawer'`，禁止新建 `DrawerModal.tsx`”）；
-   - 完结交接指令（例如：Author 自测全绿后直接 `@reviewer` 附上 Diff 摘要与验证命令输出，无需每步中转 `@coordinator`）。
+3. **每个 Worker 的 `brief` 必须采用标准化 6 字段契约**（Worker 看不到主对话历史，自由发挥极易漏边界！），严格按以下极简结构派单：
+
+   ```text
+   JOB: <一句话说明独占任务目标>
+   INPUT & OWNED FILES: <契约 .agents/specs/<slug>.md、必读 .agents/wiki/PITFALLS.md，以及独占可修改的文件列表>
+   REUSE & NEVER: <必须复用的现有组件/变体（如在 Modal.tsx 扩充 variant='drawer'）；严禁新建的重复组件、严禁触碰的非所属文件>
+   DONE WELL: <3~5 条硬性完成标准：tsc 零报错、单测通过、Loading/Empty/Error/Normal 四态齐全>
+   HANDOFF: <自测全绿后直接 @reviewer 贴出 git diff 摘要与验证命令真实输出（标明 Round 1/2）>
+   ESCALATE IF: <发现需求契约自相矛盾、依赖阻塞，或返修满 2 轮仍无法通过时，立即停止盲改并 @coordinator 说明卡点>
+   ```
+
 4. 首回合向用户发 2~3 行简短启动说明，末尾单独一行放 `open_board` 面板入口，结束回合等待唤醒。
 
 ### Phase 2：增量编码 + 本地真实验证（Author 内部闭环）
@@ -60,21 +66,26 @@ description: >-
 3. **前端 UI 实测**（若涉及可视页面且本地开发服务可启动）：配合浏览器预览或组件渲染检查确认正常态、空态、加载态、报错态无样式崩坏或控制台报错；
 4. 若使用 `workspace: "share"`，在各自工作区完成清晰 Commit 并在面板报出分支/提交信息。
 
-### Phase 3：独立对抗式 Review 循环（默认 `Neon High`，高危按需 `Carbon High`，内部打磨至 >= 90 分）
+### Phase 3：独立对抗式 Review 循环（默认 `Neon High`，高危按需 `Carbon High`，最多 2 轮熔断）
 
 1. `reviewer`（默认 `gemini-4-neon-high`，高危场景 `gemini-4-carbon-high`）加载 `strict-review` 技能，逐项核查：
-   - 是否违反“复用与变体优先”私自造轮子？
+   - 是否违反“复用与变体优先”私自造轮子，或重犯 `.agents/wiki/PITFALLS.md` 中的历史错题？
    - 是否完整覆盖 `.agents/specs/<slug>.md` 的所有交互分支与异常四态？
    - 是否有任何类型逃逸（`any` / 强转）或回归风险（通过 `.agents/wiki/_generated/graph.json` 核查被修改文件的上游调用方 `importedBy`）？
-2. **未满 90 分或存在 Blocker/Major**：`reviewer` 直接在面板 `@author-*` 列出具体文件行号与修改要求，`author-*` 修复重验后再次 `@reviewer` 复审——**整个打磨循环在蜂巢内部自动完成，绝不拿半成品去烦用户！**
+2. **返修闭环与“最多 2 轮（Max 2 Rounds）”硬熔断机制**：
+   - **Round 1 未满 90 分（或含 Blocker/Major）**：`reviewer` 直接 `@author-*` 给出精确到文件行号的修复指令，`author-*` 修复重验后发 `Round 2/2` 复审；
+   - **Round 2 仍未满 90 分（触发熔断，严禁无限乒乓空烧配额！）**：`reviewer` 不再退回给原 Author 盲改，而是直接 `@coordinator [ESCALATE after 2 rounds]` 报出剩余未解分歧。主控此时二选一处理：
+     1. 若原 Author 是 `gemini-4-hydrogen-high` 因复杂逻辑卡壳，用 `swarm{action: "model", name: "author-...", model: "gemini-4-neon-high"}` 升级模型做最后一次定点收敛；
+     2. 若属于需求边界或产品取舍冲突，立即用 `ask_question`（带 `(Recommended)`）向用户请示拍板。
 3. **达到 >= 90 分且验证全绿**：
    - 若 Author 使用了 `workspace: "share"`，先将其改动干净合入主工作区（cherry-pick / merge）并跑一次集成 `tsc --noEmit` 确认零冲突；
-   - 随后唤醒 `@wiki` 执行知识库同步。
+   - 随后唤醒 `@wiki` 执行知识库与错题本同步。
 
-### Phase 4：Wiki 增量回写与干净收尾
+### Phase 4：Wiki 与错题本增量回写，干净收尾
 
 1. `wiki` Worker 加载 `ts-repo-wiki` 技能：
    - 运行 `scan_ts_graph.mjs` 更新 `.agents/wiki/_generated/` 组件变体表与模块图谱；
-   - 增量更新 `.agents/wiki/SYSTEM_PATTERNS.md` 或 `domains/<domain>.md` 中新增的组件变体/业务规则词条，完成后 `@coordinator` 汇报。
+   - 增量更新 `.agents/wiki/SYSTEM_PATTERNS.md` 或 `domains/<domain>.md` 中新增的组件变体/业务规则词条；
+   - **错题本沉淀**：若本次面板记录中曾发生过 Review 打回（Round 1 未一次过），将该次失误的共性根因浓缩成 1 条精炼防坑规则原位合入 `.agents/wiki/PITFALLS.md`（总长严控在 30 条以内），完成后 `@coordinator` 汇报。
 2. 主控回收并 `kill` 已完成使命的临时工作区 Worker（确认改动已落地主工作区后再 `kill`！若启用了 `monitor` 先发 `[done] <summary>`）。
 3. **向用户简洁交付**：先给结论，列出复用/扩展了哪些既有组件、改了哪几个关键文件、验证与独立 Review 得分，控制在极简篇幅内。
