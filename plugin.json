@@ -6,7 +6,7 @@
     "name": "MICAHFANG",
     "url": "https://github.com/MICAHFANG"
   },
-  "description": "TypeScript 全栈研发方法论套件：Grill-Me 交互式需求拷问、TS AST 组件变体与依赖图谱、复用优先审计、异构模型 Swarm 蜂巢并发交付（3.8 Flash / Hydrogen / Neon / 按需 Carbon）及独立对抗式 Review 闭环。",
+  "description": "End-to-end TypeScript engineering methodology plugin for Google Antigravity: Grill-Me spec interviews, zero-token TS AST component variant & dependency graphs, variant-first reuse audits, heterogeneous Gemini 4 / 3.8 Swarm execution, and adversarial read-only review.",
   "logo": "assets/logo.svg",
   "repository": {
     "type": "git",

@@ -1,93 +1,93 @@
 <div align="center">
   <img src="./assets/logo.svg" width="96" height="96" alt="Swarm Forge Logo" />
-  <h1>Swarm Forge</h1>
-  <p><strong>从 60 分“能跑就行”到 95 分“免督促一次交付”的 TypeScript 异构多代理工程方法论插件</strong></p>
+  <h1>agy-swarm-forge</h1>
+  <p><strong>From "60% Vibe Coding" to "95% Autonomous Delivery": A Heterogeneous Multi-Agent Engineering Methodology Plugin for Google Antigravity &amp; TypeScript</strong></p>
   <p>
-    <a href="./README.en.md">English</a> · 简体中文
+    English · <a href="./README.zh-CN.md">简体中文</a>
   </p>
 </div>
 
 ---
 
-**Swarm Forge** 是一套专为 **Google Antigravity**（同时兼容 `npx skills` 生态）打造的端到端研发方法论插件，面向 TypeScript 全栈与前端工程团队。
+**`agy-swarm-forge`** is an end-to-end software engineering methodology plugin built for **Google Antigravity** (and compatible with the universal `npx skills` CLI), purpose-built for medium-to-large **TypeScript** full-stack and frontend codebases.
 
-## 为什么做这个项目？
+## Why `agy-swarm-forge`?
 
-AI 编程代理单点编码能力已经很强，但在真实中大型项目里往往卡在 **60~70 分**，剩下 30 分需要开发者反复催促返工：
+Modern AI coding agents are capable coders, yet in growing production repositories they routinely stall at **60–70% quality**, leaving developers to babysit the remaining 30%:
 
-1. **爱重复造轮子**：新需求一来直接新建组件/新模块，而不是在既有组件上扩展 `variant / size / slot` Props 或顺着既有链路增量演进；
-2. **跨会话失忆 & 缺少全局视野**：项目变大后不知道已有能力在哪、改一个底层文件会影响哪些调用方；
-3. **冗长技术计划浪费人类注意力**：动辄输出几百行内部技术细节求审批，而真正重要的交互边界与异常四态却没对齐；
-4. **自己写自己审必然放水**：缺乏独立只读视角的对抗式 Code Review；单挂重推理模型又会导致日常对话卡顿不跟手。
+1. **Reinventing Components Instead of Extending Variants**: Given a new UI requirement, agents tend to create brand-new components or parallel silos from scratch rather than adding a `variant`, `size`, or `slot` prop to existing primitives.
+2. **Cross-Session Amnesia & Missing Blast-Radius Awareness**: Without a structural codebase graph and persistent architecture wiki, agents lose track of shared hubs and accidentally break upstream callers.
+3. **500-Line Implementation Plan Fatigue**: Dumping walls of internal technical boilerplate for human approval wastes developer attention while still missing critical UX edge states.
+4. **Self-Review Bias & Latency Tradeoffs**: An agent reviewing its own code in the same context window rubber-stamps missing edge cases; conversely, pinning the heaviest frontier reasoning model to the main chat makes everyday interaction sluggish.
 
 ---
 
-## 核心工作流架构
+## Workflow Architecture
 
 ```mermaid
 flowchart LR
-  A["用户提出需求"] --> B{"颗粒度路由"}
-  B -->|"5分钟内单文件微调"| C["极速直出通道\n查复用 -> 修改 -> tsc自检"]
-  B -->|"跨文件新功能 / 重构 / 强制口令"| D["1. grill-spec\n静默查图谱 + 选择题拷问边界"]
-  D --> E["锁定极简契约\n.agents/specs/*.md"]
-  E --> F["2. swarm-delivery\n异构模型蜂巢并发推进"]
-  subgraph Swarm["异构 Swarm 蜂巢内部闭环"]
-    S1["scout (3.8 Flash)\nAST图谱 & 组件变体复用清单"] --> S2["author-* (Hydrogen / Neon High)\nshare隔离工作区增量编码 + 自测"]
-    S2 --> S3["reviewer (Neon High / 按需Carbon)\nstrict-review 只读打分 >= 90"]
-    S3 -->|"未达标打回重修"| S2
-    S3 -->|"通过并合入"| S4["wiki (3.8 Flash)\n刷新AST图谱 & 增量编译Wiki"]
+  A["User Request"] --> B{"Smart Tiering"}
+  B -->|"Single-file / <5 min tweak"| C["Fast Path\nCheck Reuse -> Edit -> tsc Check"]
+  B -->|"Multi-file Feature / Refactor / Forced"| D["1. grill-spec\nSilent Repo Scan + Multiple-Choice Interview"]
+  D --> E["Lock Concise Spec\n.agents/specs/*.md"]
+  E --> F["2. swarm-delivery\nHeterogeneous Swarm Execution"]
+  subgraph Swarm["Autonomous Heterogeneous Swarm Loop"]
+    S1["scout (Gemini 3.8 Flash)\nAST Graph & Component Variant Audit"] --> S2["author-* (Hydrogen / Neon High)\nIsolated share Workspace Coding + Tests"]
+    S2 --> S3["reviewer (Neon High / Carbon High)\nRead-Only strict-review Gate >= 90/100"]
+    S3 -->|"< 90: Changes Requested"| S2
+    S3 -->|">= 90: Merge & Pass"| S4["wiki (Gemini 3.8 Flash)\nRefresh AST Graph & Compile Semantic Wiki"]
   end
   F --> Swarm
-  Swarm --> G["一次性向用户交付 95 分成品"]
+  Swarm --> G["Deliver 95% Production-Ready Result"]
 ```
 
 ---
 
-## 四大核心模块（Skills + Rules + AST Graph）
+## What's Inside
 
-| 组件 | 类型 | 作用说明 |
+| Module | Kind | What It Does |
 | :--- | :---: | :--- |
-| **`rules/AGENTS.md`** | 常驻微规则 | 反黑盒一句话意图播报、禁止倾倒冗长技术计划、**组件变体优先（Variant over New Component）**、智能分级与强制口令路由 |
-| **`ts-repo-wiki`** | Skill + Node 脚本 | 零外部依赖安装：自动调用项目本地 `typescript` 编译器 AST（无依赖时自动降级）秒级生成 `.agents/wiki/_generated/` 组件变体枚举表、Mermaid 模块拓扑图与反向依赖索引，配合 Karpathy `llm-wiki` 风格原位更新业务语义词条 |
-| **`grill-spec`** | Skill | 吸收 `/grill-me` 精髓：先静默查代码过滤废话问题，再用 `ask_question`（首选项固定带 `(Recommended)`）逐层敲定交互与 UI 四态，生成极简验收契约 |
-| **`swarm-delivery`** | Skill | 免审冗长技术计划，按异构模型矩阵拉起多代理并发编码、验证、互审与 Wiki 回写 |
-| **`strict-review`** | Skill | 独立只读终审评分卡：严卡**重复造轮子（30分）、UI四态完整度（25分）、架构同构（20分）、零 `any` 类型严密性（15分）、真实验证证据（10分）**，低于 90 分内部打回重修 |
-| **`hooks.json`** | `SessionStart` Hook | 新会话启动时毫秒级检测工作区 `.agents/wiki/` 状态并自动注入上下文提示，消除跨会话失忆 |
+| **`rules/AGENTS.md`** | Always-On Rule | Anti-blackbox 1-line intent broadcasts, zero bloated implementation plans, **Variant-over-New-Component** enforcement, and smart tiering / forced-swarm routing |
+| **`ts-repo-wiki`** | Skill + AST Script | Zero external dependencies: leverages the repo's own `node_modules/typescript` compiler AST (with instant regex fallback) to generate `.agents/wiki/_generated/COMPONENT_INDEX.md` (union variants, slots, hooks), `MODULE_GRAPH.md` (Mermaid topology + top fan-in hubs), and `graph.json` (blast-radius lookup), paired with a Karpathy-style compounding semantic wiki |
+| **`grill-spec`** | Skill | Inspired by `/grill-me`: explores the codebase & wiki silently *before* asking questions, then uses `ask_question` (always leading with a `(Recommended)` option) to resolve product & UX edge states into a concise spec |
+| **`swarm-delivery`** | Skill | Orchestrates a heterogeneous multi-model Swarm across isolated `share` workspaces—skipping plan-review friction and iterating internally until verification and review gates pass |
+| **`strict-review`** | Skill | Read-only adversarial review rubric scoring 5 hard gates: **Reuse & Variant Design (30%)**, **UX 4-State Completeness (25%)**, **Architectural Cohesion (20%)**, **Strict TypeScript Zero-`any` Safety (15%)**, and **Execution Proof (10%)** |
+| **`hooks.json`** | `SessionStart` Hook | Sub-10ms startup check that detects `.agents/wiki/` in the active workspace and injects instant context awareness on turn 1 |
 
 ---
 
-## Gemini 4 & 3.8 异构模型分工矩阵
+## Heterogeneous Gemini 4 & 3.8 Model Matrix
 
-日常建议将主聊天窗口模型设为均衡跟手的 **`Gemini 4 Neon`**，后台蜂巢会自动按职责异构挂载：
+Keep your primary chat session responsive on **`Gemini 4 Neon`** while `swarm-delivery` pins specialized models to each background worker:
 
-| 蜂巢角色 | 模型配置 | 设计原因 |
+| Swarm Role | Pinned Model | Rationale |
 | :--- | :--- | :--- |
-| **`coordinator`（主控）** | 当前会话模型（推荐 `Gemini 4 Neon`） | 保持主界面秒回跟手，只做调度仲裁，不下场写重代码 |
-| **`scout` / `wiki`** | `gemini-3.8-flash-medium` | 极低延迟完成图谱扫描、复用审计与收尾文档同步 |
-| **`author-<slice>`（常规工兵）** | `gemini-4-hydrogen-high` | 165+ tok/s 高速完成组件变体扩展、常规业务切片与单测补全 |
-| **`author-<core>`（核心攻坚）** | `gemini-4-neon-high` | 处理复杂跨模块状态流转与高难度抽象改造 |
-| **`reviewer`（独立终审官）** | 默认 **`gemini-4-neon-high`**<br>高危按需升级 **`gemini-4-carbon-high`** | 日常 90% 场景用 `Neon High` 兼顾严苛清单审查与双倍返修速度；涉及高 Fan-In 核心底座、复杂并发竞态或鉴权计费时自动升级 `Carbon High` 深度推演 |
+| **`coordinator`** | Active session model (`Gemini 4 Neon` recommended) | Responsive human-facing orchestration; never blocks the chat writing heavy implementation code |
+| **`scout` / `wiki`** | `gemini-3.8-flash-medium` | Ultra-low-latency AST graph scanning, component reuse auditing, and post-merge wiki compilation |
+| **`author-<slice>`** | `gemini-4-hydrogen-high` | 165+ tok/s high-velocity execution for component variant extensions, standard slices, and unit tests |
+| **`author-<core>`** | `gemini-4-neon-high` | High-capability workhorse for complex cross-module state flows and core abstractions |
+| **`reviewer`** | **`gemini-4-neon-high`** (default)<br>**`gemini-4-carbon-high`** (high-risk escalation) | `Neon High` catches reuse violations and missing UX states at 2x speed for fast rework loops; automatically escalates to `Carbon High` for high-fan-in core hubs, concurrency/race conditions, or auth/billing logic |
 
 ---
 
-## 快速安装
+## Quick Start
 
-### 方式一：安装为 Google Antigravity 全局插件（推荐）
+### Option 1: Install as a Google Antigravity Global Plugin (Recommended)
 
 ```bash
 git clone https://github.com/MICAHFANG/agy-swarm-forge.git
 cd agy-swarm-forge
 
-# 拷贝安装到 ~/.gemini/config/plugins/swarm-forge
+# Copy into ~/.gemini/config/plugins/swarm-forge
 ./install.sh
 
-# 如果你正在本地修改调试本仓库，可使用软链接模式保持实时同步：
+# Or symlink for live local customization & development:
 ./install.sh --link
 ```
 
-安装后无需重启 Antigravity，下一轮对话起自动生效，也可在左侧 **Skills & Customizations** 面板中随时一键开关。
+Takes effect automatically on your next conversation turn—no restart required. You can toggle or inspect the plugin anytime under **Skills & Customizations** in Antigravity.
 
-### 方式二：仅安装 Skills（兼容 `skills` CLI 的其他 Agent 工具）
+### Option 2: Install Standalone Skills (`npx skills`)
 
 ```bash
 npx skills add MICAHFANG/agy-swarm-forge
@@ -95,12 +95,12 @@ npx skills add MICAHFANG/agy-swarm-forge
 
 ---
 
-## 日常使用姿势
+## Everyday Workflow
 
-1. **老项目首次建图谱**：打开任意 TypeScript 仓库，输入：
-   > “扫描当前仓库，初始化 `.agents/wiki` 组件变体与模块依赖图谱”
-2. **开发新功能（全自动分级）**：直接描述你的业务诉求，Agent 会先查现有组件并抛出带 `(Recommended)` 的关键选择题与你对齐边界，敲定后自动拉起 Swarm 交付。
-3. **强制拉起异构蜂巢**：任何时候想跳过单代理直出、强制走多代理并发与独立终审，只需说一句 **“用 swarm 推进” / “起蜂巢”** 或输入斜杠命令 **`/swarm-delivery`**。
+1. **Bootstrap Existing TypeScript Repos**: Open any TS project and ask:
+   > *"Scan this repo and initialize the `.agents/wiki` component variant index and module dependency graph."*
+2. **Build Features End-to-End**: Describe what you want to build. The agent checks existing component variants first, interviews you on genuine UX branches with `(Recommended)` defaults, and spins up the heterogeneous Swarm automatically.
+3. **Force Swarm Mode Anytime**: Say *"run this with swarm"* or invoke `/swarm-delivery` to force full multi-agent execution and independent adversarial review regardless of task size.
 
 ---
 
