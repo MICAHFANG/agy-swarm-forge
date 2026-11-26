@@ -11,6 +11,20 @@
 
 **`agy-swarm-forge`** is an end-to-end software engineering methodology plugin built for **Google Antigravity** (and compatible with the universal `npx skills` CLI), purpose-built for medium-to-large **TypeScript** full-stack and frontend codebases.
 
+## Real-World Before / After
+
+<p align="center">
+  <img src="./assets/before-after-en.png" alt="Before vs After: Native /swarm vs agy-swarm-forge" width="100%" />
+</p>
+
+- **Before (Bare Native `/swarm` · 15 min)**: Long opaque thinking blocks (`196s` / `74s` / `55s` / `148s`) with zero status broadcasts, repeated board polling (`#49–#51`) and mid-run model switching, and no locked spec contract or independent quality gate.
+- **After (`agy-swarm-forge` · 4 min end-to-end)**:
+  1. **14s Transparent Alignment**: Reads `.agents/wiki/` first, broadcasts intent in one sentence, and locks a concise spec contract without dumping a 500-line plan.
+  2. **3 min Heterogeneous Parallelism**: Dispatches `Gemini 4 Hydrogen` (`author-sidebar`) and `Gemini 4 Neon` (`author-inbox`) concurrently in isolated shared workspaces with zero polling churn.
+  3. **1 min Cross-Architecture Review & Wiki Sync**: Automatically hands off to **Claude Sonnet 5.5** for read-only adversarial review + bounded impact tests (**95/100 PASS**), then refreshes the repo AST graph & Wiki.
+
+---
+
 ## Why `agy-swarm-forge`?
 
 Modern AI coding agents are capable coders, yet in growing production repositories they routinely stall at **60–70% quality**, leaving developers to babysit the remaining 30%:

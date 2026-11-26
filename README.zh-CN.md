@@ -11,6 +11,20 @@
 
 **`agy-swarm-forge`** 是一套专为 **Google Antigravity**（同时兼容 `npx skills` 生态）打造的端到端研发方法论插件，面向 TypeScript 全栈与前端工程团队。
 
+## 真实工程场景 Before / After 实测对比
+
+<p align="center">
+  <img src="./assets/before-after-zh.png" alt="原生 /swarm vs agy-swarm-forge 实测前后对比" width="100%" />
+</p>
+
+- **Before（直接裸开原生 `/swarm` · 15 分钟）**：单轮黑盒思考动辄 2~3 分钟（`196s` / `74s` / `55s` / `148s`）且全程零播报；任务在公告板 `#49–#51` 反复查板空转，中途临时切模；缺少前置需求契约与独立终审门禁。
+- **After（启用 `agy-swarm-forge` · 4 分钟闭环）**：
+  1. **14 秒透明对齐**：先读 `.agents/wiki/` 知识库，一句话播报意图并将边界落盘为极简契约，不倾倒冗长技术计划；
+  2. **3 分钟异构并发**：按模块复杂度自动并行派发 `Gemini 4 Hydrogen`（`author-sidebar`）与 `Gemini 4 Neon`（`author-inbox`），隔离工作区零轮询空转；
+  3. **1 分钟跨家族终审 + 图谱同步**：自动移交 **Claude Sonnet 5.5** 执行只读对抗式审查与有界影响面测试，**95/100 PASS** 一次交付并自动同步仓库 AST 图谱与 Wiki。
+
+---
+
 ## 为什么做这个项目？
 
 AI 编程代理单点编码能力已经很强，但在真实中大型项目里往往卡在 **60~70 分**，剩下 30 分需要开发者反复催促返工：
