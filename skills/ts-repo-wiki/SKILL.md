@@ -22,7 +22,8 @@ description: >-
 └── _generated/                   # 脚本自动生成（禁止手改，随时重跑覆盖）
     ├── COMPONENT_INDEX.md        # 导出组件、Props 类型、Variant/Union 变体清单 + Hooks/Utils 索引
     ├── MODULE_GRAPH.md           # 模块拓扑 Mermaid 图、高频核心基础件榜单（Hubs）、反向依赖查询
-    └── graph.json                # 机器可读的符号与依赖边索引（供 grep / jq 秒查影响面）
+    ├── graph.json                # 机器可读的符号与依赖边索引（供 grep / jq 秒查影响面）
+    └── graph-viewer.html         # 面向人类的零依赖离线交互式可视化看板（L1拓扑 / L2爆炸半径 / L3组件变体库）
 ```
 
 ## 操作流程
@@ -60,6 +61,11 @@ node "<本技能目录>/scripts/scan_ts_graph.mjs" "<项目根目录绝对路径
 ### 4. 可选：周度自我进化巡检（配合 Antigravity `/schedule`）
 
 若用户希望定期迭代团队规范，可建议创建每周一次的定时任务（运行在 `Gemini 4 Neon`）：读取 `.agents/wiki/PITFALLS.md` 中反复出现的最高频痛点，向用户提议 **唯一 1 条** 最具杠杆率的 `SYSTEM_PATTERNS.md` 或项目级 `.agents/rules/` 改进草案，待用户确认后生效。
+
+## 人类可视化浏览支持（双模式）
+
+1. **离线交互式看板（零依赖、团队可共享）**：每次运行 `scan_ts_graph.mjs` 会自动生成 `.agents/wiki/_generated/graph-viewer.html`（支持 L1 三栏模块拓扑与循环依赖标红、L2 单文件上下游爆炸半径追踪、L3 组件变体画廊与实时搜索）。生成完成后直接给用户提供可点击的 `file://` 链接，浏览器双击即看。
+2. **对话内即时交互渲染（`generative_ui`）**：当用户在聊天中直接问“把当前项目的依赖图/组件关系可视化画给我看”时，读取 `.agents/wiki/_generated/graph.json`，激活 Antigravity 内置的 `generative_ui` 技能，在对话流内即时渲染一个交互式模块拓扑与爆炸半径小组件，同时附上 `graph-viewer.html` 完整离线版链接。
 
 ## 检索与影响面分析技巧（供日常查询使用）
 

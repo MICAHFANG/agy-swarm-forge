@@ -49,7 +49,7 @@ flowchart LR
 | 组件 | 类型 | 作用说明 |
 | :--- | :---: | :--- |
 | **`rules/AGENTS.md`** | 常驻微规则 | 反黑盒一句话意图播报、禁止倾倒冗长技术计划、**组件变体优先（Variant over New Component）**、智能分级与强制口令路由 |
-| **`ts-repo-wiki`** | Skill + Node 脚本 | 零外部依赖安装：自动调用项目本地 `typescript` 编译器 AST（无依赖时自动降级）秒级生成 `.agents/wiki/_generated/` 组件变体枚举表、Mermaid 模块拓扑图与反向依赖索引，配合语义词条与 **`PITFALLS.md` 防重犯错题本**原位更新 |
+| **`ts-repo-wiki`** | Skill + AST 脚本 + 可视化看板 | 零外部依赖：调用本地 `typescript` AST 秒级生成 `COMPONENT_INDEX.md`、`MODULE_GRAPH.md`、`graph.json` 及**面向人类的离线交互式看板 `graph-viewer.html`**（L1 模块拓扑与循环依赖标红 / L2 单文件爆炸半径 / L3 组件变体库，同时支持对话内 `generative_ui` 即时渲染）与 `PITFALLS.md` 错题本 |
 | **`arch-best-practices`** | Skill + References + 脚本 | 按需懒加载软件工程与技术栈硬核范式库（**经典分层与设计模式、PostgreSQL + Drizzle 调优、Hono + Redis 高并发、Next.js + 严格 TS**），附带 `find_gold_repos.mjs` 自动过滤低质 Demo 定位顶级生产开源标杆 |
 | **`grill-spec`** | Skill | 吸收 `/grill-me` 与 `pstack` 精髓：代码可查事实与实验可证事实绝不问人，只用带 `(Recommended)` 的选择题敲定产品与交互边界 |
 | **`swarm-delivery`** | Skill | 采用**含 `NEVER` 禁区的 6 字段契约**与**两级有界验证**（Author 禁跑全仓测试，仅跑本领域 `<=30s` 局部单测；Reviewer 统一执行唯一一次带 `60~90s` 硬超时的影响面收敛测试）+ **2 轮质疑前提熔断** |

@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { buildGraphViewerHtml } from './render_graph_viewer.mjs';
 
 const targetRoot = path.resolve(process.argv[2] || process.cwd());
 if (!fs.existsSync(targetRoot)) {
@@ -670,7 +671,7 @@ const graphMd = [
 
 fs.writeFileSync(path.join(genDir, 'MODULE_GRAPH.md'), graphMd, 'utf8');
 
-// 7C. graph.json (for instant jq blast-radius lookup)
+// 7C. graph.json + zero-dependency offline interactive HTML viewer (graph-viewer.html)
 const compactGraph = {
   generatedAt: new Date().toISOString(),
   parser: ts ? `typescript-${ts.version}` : 'fallback',
@@ -679,6 +680,14 @@ const compactGraph = {
   files: fileRecords
 };
 fs.writeFileSync(path.join(genDir, 'graph.json'), JSON.stringify(compactGraph, null, 2), 'utf8');
+
+const viewerHtml = buildGraphViewerHtml({
+  repoName: path.basename(targetRoot),
+  compactGraph,
+  moduleStats,
+  moduleEdges
+});
+fs.writeFileSync(path.join(genDir, 'graph-viewer.html'), viewerHtml, 'utf8');
 
 // 7D. Initialize semantic Wiki templates ONLY if missing
 const indexPath = path.join(wikiDir, 'INDEX.md');
@@ -691,6 +700,7 @@ if (!fs.existsSync(indexPath)) {
     `## 1. 结构与复用必查索引`,
     `- [组件变体与 Hooks 清单](./_generated/COMPONENT_INDEX.md) — **新建任何组件/Hook 前必查**`,
     `- [模块依赖图谱与爆炸半径](./_generated/MODULE_GRAPH.md) — **跨模块改动与定位实现必查**`,
+    `- [交互式可视化架构看板](./_generated/graph-viewer.html) — **面向人类：浏览器直接打开查看 L1 模块拓扑 / L2 爆炸半径 / L3 组件变体库**`,
     `- [系统技术约定与设计模式](./SYSTEM_PATTERNS.md) — 状态管理、接口请求、样式与变体扩展规范`,
     `- [高频踩坑与错题本](./PITFALLS.md) — **编码与 Review 前必读，防止重犯历史扣分项**`,
     ``,
