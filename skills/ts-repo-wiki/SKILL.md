@@ -60,7 +60,7 @@ description: >-
      }
    }
    ```
-   *(若用户选了外部 Coding CLI，如 Codex CLI 接 Astra/Sol，则写为：`"reviewer": { "mode": "external-cli", "cli": "codex", "model": "astra", "runnerModel": "gemini-3.8-flash-medium", "fallbackModel": "gemini-4-carbon-high" }`)*
+   *(若用户选了外部 Coding CLI，如 Codex CLI 接 Astra/Sol，则写为：`"reviewer": { "mode": "external-cli", "cli": "codex", "model": "astra", "runnerModel": "gemini-4-neon-medium", "fallbackModel": "gemini-4-carbon-high" }`)*
 
 ### 1. 运行 AST 图谱扫描脚本（生成 `_generated/` 与初始化骨架）
 

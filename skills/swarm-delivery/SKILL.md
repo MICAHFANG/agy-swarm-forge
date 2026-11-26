@@ -31,7 +31,7 @@ description: >-
 1. **模式 A — Antigravity 原生 Claude 5.5（默认推荐）**：日常 `claude-sonnet-5-5-high`，高危底座/并发锁/权限计费升级 `claude-opus-5-5-high`；若 Claude 额度耗尽自动回退 `fallbackModel`（默认 `gemini-4-carbon-high`）。
 2. **模式 B — Antigravity 原生 Gemini 4 Carbon 兜底（省 Claude 额度）**：日常 `gemini-4-neon-high` 或直接 `gemini-4-carbon-high`，零消耗 Claude 配额池。
 3. **模式 C — 本机外部 Coding CLI 交叉评审（强烈推荐给装有 Codex / Claude CLI 的用户！）**：
-   - `reviewer` Worker 本身挂超轻量 `gemini-3.8-flash-medium` 仅作外壳执行器（几乎零 Antigravity 额度消耗）：先跑本地唯一一次有界集成测试（`tsc` + 影响面单测），再调用插件根目录的 `scripts/run_cli_review.mjs` 把 `git diff` + 契约 + `strict-review` 规则送入用户指定的本机外部 CLI 做真·跨厂商只读交叉审查：
+   - `reviewer` Worker 本身挂 **`gemini-4-neon-medium`** 作为稳定外壳执行器：先可靠跑完本地唯一一次有界集成测试（`tsc` + 影响面单测），再调用插件根目录的 `scripts/run_cli_review.mjs` 把 `git diff` + 契约 + `strict-review` 规则送入用户指定的本机外部 CLI 做真·跨厂商只读交叉审查，并精准解析裁决结果回传面板：
      ```bash
      # 例如 Codex CLI 连接 Astra / Sol：
      node "<插件根目录>/scripts/run_cli_review.mjs" --repo="<repo>" --cli=codex --model=astra --spec=".agents/specs/<slug>.md" --round=1
