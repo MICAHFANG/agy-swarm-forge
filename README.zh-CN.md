@@ -68,7 +68,7 @@ flowchart LR
 | **`scout` / `wiki`** | `gemini-3.8-flash-medium` | 极低延迟完成图谱扫描、复用审计与收尾文档同步 |
 | **`author-<slice>`（常规工兵）** | `gemini-4-hydrogen-high` | 165+ tok/s 高速完成组件变体扩展、常规业务切片与本领域局部单测 |
 | **`author-<core>`（核心攻坚）** | `gemini-4-neon-high` | 处理复杂跨模块数据建模、PGSQL/Redis 并发链路与底层抽象 |
-| **`reviewer`（跨架构终审官）** | 默认 **`claude-sonnet-5-5-high`**<br>高危升级 **`claude-opus-5-5-high`**<br>*(配额兜底：`gemini-4-neon/carbon-high`)* | 用不同架构的 Claude 5.5 交叉挑刺 Gemini 4 的代码产出，打破同源放水盲区并分流独立配额池；涉及高 Fan-In 核心底座、复杂并发锁或鉴权计费时升级 `Claude Opus 5.5 High` |
+| **`reviewer`（跨架构终审官）** | **初始化时自选（3 种模式）**：<br>1. **`claude-sonnet-5-5-high` / `opus-5-5-high`**（默认）<br>2. **`gemini-4-carbon-high`**（免耗 Claude 额度）<br>3. **本机外部 Coding CLI**（如 `codex` 连 Astra/Sol、`claude` CLI、`opencode`） | 首次初始化时自动运行 `detect_env.mjs` 扫描本机已装的 Coding CLI，并弹出选择题由你按自身订阅额度自选各阶段模型（落盘 `.agents/swarm-forge.json`），让所有订阅用户都能实现零同源盲区的交叉评审 |
 
 ---
 

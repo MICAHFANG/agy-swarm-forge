@@ -28,6 +28,40 @@ description: >-
 
 ## 操作流程
 
+### 0. 首次初始化向导：探测本机 Coding CLI 并让用户自选各阶段模型
+
+在首次初始化仓库，或检测到项目 `.agents/swarm-forge.json` 与全局 `~/.gemini/config/swarm-forge.json` **均不存在**（或用户要求重新配置模型）时执行：
+
+1. **并行探测环境**：
+   - 运行本插件自带的环境探测脚本（位于插件根目录 `scripts/detect_env.mjs`），检测本机已安装的外部 Coding CLI（如 `codex`、`claude`、`opencode`、`gemini`、`aider` 等）：
+     ```bash
+     node "<插件根目录>/scripts/detect_env.mjs" "<项目根目录绝对路径>"
+     ```
+   - 同步调用 `swarm{action: "models", all: true}` 查看当前账号可用模型与剩余额度。
+2. **用 `ask_question` 弹出 3 个阶段模型自选框（首选项带 `(Recommended)`）**：
+   - **Q1 扫描与 Wiki 阶段（`scout` / `wiki`）**：默认 `(Recommended) Gemini 3.8 Flash (Medium)`（极速省额），可选 `Gemini 4 Hydrogen (Medium)`；
+   - **Q2 编码工兵阶段（`author-*`）**：默认 `(Recommended) 常规切片 Gemini 4 Hydrogen (High) + 核心攻坚 Gemini 4 Neon (High)`，可选全 `Gemini 4 Neon (High)` 或全 `Gemini 4 Hydrogen (High)`；
+   - **Q3 Review 终审阶段（`reviewer`，兼容不同订阅额度与交叉评审）**：
+     - `(Recommended) Antigravity 原生 Claude 5.5：日常 claude-sonnet-5-5-high，高危升级 claude-opus-5-5-high`
+     - `Antigravity 原生 Gemini 4 Carbon 兜底（省 Claude 额度）：日常 gemini-4-neon-high，高危/全量使用 gemini-4-carbon-high`
+     - **动态追加本机探测到的外部 Coding CLI 交叉评审选项**（仅列出 `detect_env.mjs` 实测存在的 CLI！例如：若装了 `codex`，提供 `本机 Codex CLI 交叉评审（连接 Astra / Sol，不消耗 Antigravity Claude 额度）`；若装了 `claude`，提供 `本机 Claude Code CLI 交叉评审（走本地独立订阅）`；若装了 `opencode` 等同样列出）。
+3. **落盘配置文件**：将用户选择写入项目 `.agents/swarm-forge.json`（若用户选择全局生效则写入 `~/.gemini/config/swarm-forge.json`），结构示例：
+   ```json
+   {
+     "scout": "gemini-3.8-flash-medium",
+     "wiki": "gemini-3.8-flash-medium",
+     "authorSlice": "gemini-4-hydrogen-high",
+     "authorCore": "gemini-4-neon-high",
+     "reviewer": {
+       "mode": "swarm-model",
+       "defaultModel": "claude-sonnet-5-5-high",
+       "highRiskModel": "claude-opus-5-5-high",
+       "fallbackModel": "gemini-4-carbon-high"
+     }
+   }
+   ```
+   *(若用户选了外部 Coding CLI，如 Codex CLI 接 Astra/Sol，则写为：`"reviewer": { "mode": "external-cli", "cli": "codex", "model": "astra", "runnerModel": "gemini-3.8-flash-medium", "fallbackModel": "gemini-4-carbon-high" }`)*
+
 ### 1. 运行 AST 图谱扫描脚本（生成 `_generated/` 与初始化骨架）
 
 在目标工作区运行本技能自带的扫描脚本 [scan_ts_graph.mjs](./scripts/scan_ts_graph.mjs)（脚本位于当前 `SKILL.md` 同级的 `scripts/scan_ts_graph.mjs`；优先自动调用工作区 `node_modules/typescript` 的编译器 AST 解析，未安装依赖时自动降级为轻量解析）：

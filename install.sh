@@ -18,6 +18,8 @@ else
         "$REPO_DIR/assets" "$REPO_DIR/rules" "$REPO_DIR/scripts" "$REPO_DIR/skills" \
         "$TARGET_DIR/"
   chmod +x "$TARGET_DIR/scripts/session_start.sh" \
+           "$TARGET_DIR/scripts/detect_env.mjs" \
+           "$TARGET_DIR/scripts/run_cli_review.mjs" \
            "$TARGET_DIR/skills/ts-repo-wiki/scripts/scan_ts_graph.mjs" \
            "$TARGET_DIR/skills/arch-best-practices/scripts/find_gold_repos.mjs"
   echo "[Swarm Forge] Installed to $TARGET_DIR"

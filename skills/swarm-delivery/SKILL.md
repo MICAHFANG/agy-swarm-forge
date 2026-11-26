@@ -12,27 +12,33 @@ description: >-
 
 > **前置必读**：先从当前可用技能列表中加载并阅读内置 `swarm` 技能的 `SKILL.md`，掌握 `swarm`、`post_message`、`read_board`、`swarm_wait` 的基础协议（注意：创建蜂巢的首回合结束时 `post_message`/`read_board`/`swarm_wait` 才会在下一回合挂载，且首回合回复末尾必须单独一行原样输出 `open_board` 值以便用户打开面板查看实时进度）。
 
-## 一、 跨家族异构模型分工矩阵（严禁退化为单一模型同构运行）
+## 一、 动态模型分工矩阵（优先读取用户配置，兼容原生跨家族与本机 Coding CLI 交叉评审）
 
-创建 Worker 时通过 `swarm{action: "add", model: "<model-id>", ...}` 显式固定模型：
+**启动前必读配置**：依次检查项目 `.agents/swarm-forge.json` $\rightarrow$ 全局 `~/.gemini/config/swarm-forge.json`（项目级覆盖全局）。若两者均不存在，先按 `ts-repo-wiki` Step 0 探测本机 CLI 并弹出 1 轮 `ask_question` 让用户自选后落盘。
 
-| 蜂巢角色 | Roster 命名规范 | 固定绑定模型 ID | `workspace` 模式 | 核心职责 |
+创建 Worker 时严格按配置中的模型 ID 通过 `swarm{action: "add", model: "<model-id>", ...}` 固定模型（以下为默认推荐值）：
+
+| 蜂巢角色 | Roster 命名规范 | 默认模型（可由 `swarm-forge.json` 覆盖） | `workspace` 模式 | 核心职责 |
 | :--- | :--- | :--- | :--- | :--- |
-| **主控（你）** | `coordinator` | 保持当前会话模型（推荐日常挂 `Gemini 4 Neon`） | — | 只做任务切分、面板调度、冲突仲裁与最终交付汇报，**绝不亲自下场写大段业务代码阻塞响应** |
-| **复用侦察兵** | `scout` | `gemini-3.8-flash-medium` | `inherit` | 秒查 `.agents/wiki/` 与 `arch-best-practices`（陌生技术调 `context7` 或 `find_gold_repos.mjs`），发布《组件复用清单 + 领域架构红线》 |
-| **常规编码/领域单测工兵** | `author-<slice>` | `gemini-4-hydrogen-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责常规业务切片、扩展现有组件 `variant`、补齐本领域 DDD 行为单测（**禁跑全仓测试**） |
-| **核心攻坚工兵** | `author-<core>` | `gemini-4-neon-high` | 多作者并发用 `share`，单作者用 `inherit` | 负责复杂跨模块数据建模、PGSQL/Redis 高并发链路与底层抽象改造（**禁跑全仓测试**） |
-| **跨架构对抗终审官** | `reviewer` | 默认 `claude-sonnet-5-5-high`；高危升级 `claude-opus-5-5-high`（见下） | `inherit` | **异构家族审查防同源盲区**；加载 `strict-review` 与 `arch-best-practices` 手册，纯只读执行唯一一次有界集成验证并打分 |
-| **图谱记忆官** | `wiki` | `gemini-3.8-flash-medium` | `inherit` | 代码合入主工作区并通过终审后，加载 `ts-repo-wiki` 重跑 AST 图谱脚本并增量编译更新语义 Wiki |
+| **主控（你）** | `coordinator` | 当前会话模型（推荐 `Gemini 4 Neon`） | — | 任务切分、面板调度、冲突仲裁与最终汇报，**绝不亲自下场写大段业务代码** |
+| **复用侦察兵** | `scout` | `gemini-3.8-flash-medium` | `inherit` | 秒查 `.agents/wiki/` 与 `arch-best-practices`（陌生技术调 `context7` / `find_gold_repos.mjs`） |
+| **常规编码工兵** | `author-<slice>` | `gemini-4-hydrogen-high` | 多作者用 `share`，单作者用 `inherit` | 常规业务切片、扩展现有组件 `variant`、补齐本领域 DDD 秒测（`<= 30s`） |
+| **核心攻坚工兵** | `author-<core>` | `gemini-4-neon-high` | 多作者用 `share`，单作者用 `inherit` | 复杂跨模块数据建模、PGSQL/Redis 高并发链路与底层抽象改造 |
+| **跨架构终审官** | `reviewer` | 按配置支持 3 种模式（见下） | `inherit` | 统一跑**唯一一次带超时影响面测试**，并执行 `strict-review` 跨模型对抗打分 |
+| **图谱记忆官** | `wiki` | `gemini-3.8-flash-medium` | `inherit` | 合入终审后重跑 AST 图谱脚本（含 `graph-viewer.html`），增量更新 Wiki 与 `PITFALLS.md` |
 
-**`reviewer` 跨家族选型与配额自动兜底规则**：
-- **默认日常场景（85%~90%）$\rightarrow$ `claude-sonnet-5-5-high`**：与 Gemini 4 编码工兵形成跨架构互补，对模块边界污染、组件重复造轮子、TS 类型松散和 UI 异常四态极其敏感，且响应速度快。
-- **高危重逻辑场景（10%~15%）$\rightarrow$ 升级为 `claude-opus-5-5-high`**：当改动命中以下任一条件时启用：
-  1. 底层核心架构/公共核心底座重写（影响 `.agents/wiki/_generated/MODULE_GRAPH.md` 中的高 Fan-In 核心枢纽文件）；
-  2. PostgreSQL 复杂事务/锁并发、Redis 分布式竞态或复杂状态机；
-  3. 鉴权、权限边界、计费支付等零容错高危逻辑；
-  4. 用户显式要求“用 Opus 严审 / 最高规格审查”。
-- **配额兜底（Quota Fallback）**：启动或运行前若检测到 Claude 配额池耗尽，`claude-sonnet-5-5-high` 自动回退至 `gemini-4-neon-high`，`claude-opus-5-5-high` 自动回退至 `gemini-4-carbon-high`（通过 `swarm{action: "model"}` 无缝切换并向用户说明）。
+**`reviewer` 三种交叉评审模式（由用户初始化时自选）**：
+1. **模式 A — Antigravity 原生 Claude 5.5（默认推荐）**：日常 `claude-sonnet-5-5-high`，高危底座/并发锁/权限计费升级 `claude-opus-5-5-high`；若 Claude 额度耗尽自动回退 `fallbackModel`（默认 `gemini-4-carbon-high`）。
+2. **模式 B — Antigravity 原生 Gemini 4 Carbon 兜底（省 Claude 额度）**：日常 `gemini-4-neon-high` 或直接 `gemini-4-carbon-high`，零消耗 Claude 配额池。
+3. **模式 C — 本机外部 Coding CLI 交叉评审（强烈推荐给装有 Codex / Claude CLI 的用户！）**：
+   - `reviewer` Worker 本身挂超轻量 `gemini-3.8-flash-medium` 仅作外壳执行器（几乎零 Antigravity 额度消耗）：先跑本地唯一一次有界集成测试（`tsc` + 影响面单测），再调用插件根目录的 `scripts/run_cli_review.mjs` 把 `git diff` + 契约 + `strict-review` 规则送入用户指定的本机外部 CLI 做真·跨厂商只读交叉审查：
+     ```bash
+     # 例如 Codex CLI 连接 Astra / Sol：
+     node "<插件根目录>/scripts/run_cli_review.mjs" --repo="<repo>" --cli=codex --model=astra --spec=".agents/specs/<slug>.md" --round=1
+     # 或本机 Claude Code CLI：
+     node "<插件根目录>/scripts/run_cli_review.mjs" --repo="<repo>" --cli=claude --model=sonnet --spec=".agents/specs/<slug>.md" --round=1
+     ```
+   - 若外部 CLI 执行报错或超时，自动无缝降级到 `fallbackModel`（如 `gemini-4-carbon-high`）兜底，保证流水线永不中断。
 
 *(注：若当前技能列表中存在内置 `swarm_narrator` 或 `swarm_monitor`，按内置 `swarm` 技能要求一并添加 `narrator` / `monitor`；若某模型报额度耗尽，使用 `swarm{action:"model"}` 切换同档可用模型并告知用户。)*
 
