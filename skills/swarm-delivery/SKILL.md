@@ -94,6 +94,6 @@ description: >-
 1. `wiki` Worker 加载 `ts-repo-wiki` 技能：
    - 运行 `scan_ts_graph.mjs` 更新 `.agents/wiki/_generated/` 组件变体表与模块图谱；
    - 增量更新 `.agents/wiki/SYSTEM_PATTERNS.md` 或 `domains/<domain>.md` 中新增的组件变体/业务规则词条；
-   - **错题本沉淀**：若本次面板记录中曾发生过 Review 打回（Round 1 未一次过），将该次失误的共性根因浓缩成 1 条精炼防坑规则原位合入 `.agents/wiki/PITFALLS.md`（总长严控在 30 条以内），完成后 `@coordinator` 汇报。
+   - **错题本根因沉淀与裁剪**：若本次面板记录中曾发生过 Review 打回（Round 1 未一次过），按 `- **[domain/topic]** Why: <机制根因> | Rule: <禁止 X -> 必须 Y>` 格式原位覆写同主键条目写入 `.agents/wiki/PITFALLS.md`（绝不记日期日志、绝不并存多套近似说法；若条目 > 20 条顺手执行一次冲突裁剪与过期规则淘汰，硬上限 30 条），完成后 `@coordinator` 汇报。
 2. 主控回收并 `kill` 已完成使命的临时工作区 Worker（确认改动已落地主工作区后再 `kill`！若启用了 `monitor` 先发 `[done] <summary>`）。
 3. **向用户简洁交付**：先给结论，列出复用/扩展了哪些既有组件、改了哪几个关键文件、验证与独立 Review 得分，控制在极简篇幅内。
