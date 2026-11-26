@@ -251,8 +251,12 @@ function renderStats() {
 
 function getBucket(rel) {
   const p = rel.split('/');
-  if (p[0] === 'packages' && p.length >= 3) return p[0] + '/' + p[1] + '/' + p[2];
-  if ((p[0] === 'src' || p[0] === 'app') && p.length >= 2) return p[0] + '/' + p[1];
+  if ((p[0] === 'apps' || p[0] === 'packages' || p[0] === 'services' || p[0] === 'libs') && p.length >= 2) {
+    if (p[2] === 'src' && p.length >= 5) return p[0] + '/' + p[1] + '/src/' + p[3];
+    if (p.length >= 4) return p[0] + '/' + p[1] + '/' + p[2];
+    return p[0] + '/' + p[1];
+  }
+  if ((p[0] === 'src' || p[0] === 'app') && p.length >= 3) return p[0] + '/' + p[1];
   return p.length >= 2 ? p[0] : 'root';
 }
 

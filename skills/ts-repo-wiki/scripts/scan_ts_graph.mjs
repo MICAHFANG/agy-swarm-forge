@@ -9,6 +9,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { buildGraphViewerHtml } from './render_graph_viewer.mjs';
 
@@ -19,31 +20,33 @@ if (!fs.existsSync(targetRoot)) {
 }
 
 const IGNORE_DIRS = new Set([
-  'node_modules', '.git', '.hg', '.svn', 'dist', 'build', 'out', '.next',
+  'node_modules', '.git', '.hg', '.svn', 'dist', 'build', 'out', '.next', '.next-build',
   '.nuxt', '.turbo', '.vercel', '.output', 'coverage', '.agents', '.agent',
-  'storybook-static', 'public', '.cache', 'tmp', 'temp'
+  '.agent-worktrees', '.agent-hub', 'worktrees', '.cursor', '.claude', '.playwright-cli',
+  'storybook-static', 'public', '.cache', 'tmp', 'temp', 'runs'
 ]);
 
 const CODE_EXTS = new Set(['.ts', '.tsx', '.mts', '.cts', '.jsx', '.vue']);
 const TEST_FILE_RE = /\.(test|spec|stories|e2e)\.[cm]?[tj]sx?$|__tests__|__mocks__/i;
 const VARIANT_PROP_RE = /^(variant|variants|size|intent|tone|color|theme|mode|kind|type|status|appearance|shape|layout|align|placement|asChild|render\w+|slot\w*|icon\w*|footer|header|extra)$/i;
 
-// 1. Try loading TypeScript from workspace or parent dirs
+// 1. Try loading TypeScript from workspace or 1-level monorepo subpackages (apps/*, packages/*)
 function loadTypeScript(rootDir) {
   const candidates = [
     path.join(rootDir, 'package.json'),
     path.join(process.env.HOME || '', '.gemini/config/package.json')
   ];
-  // Also check 1-level workspace subpackages if monorepo
-  const pkgsDir = path.join(rootDir, 'packages');
-  if (fs.existsSync(pkgsDir)) {
-    try {
-      for (const entry of fs.readdirSync(pkgsDir, { withFileTypes: true })) {
-        if (entry.isDirectory()) {
-          candidates.push(path.join(pkgsDir, entry.name, 'package.json'));
+  for (const wsDir of ['packages', 'apps']) {
+    const fullWs = path.join(rootDir, wsDir);
+    if (fs.existsSync(fullWs)) {
+      try {
+        for (const entry of fs.readdirSync(fullWs, { withFileTypes: true })) {
+          if (entry.isDirectory()) {
+            candidates.push(path.join(fullWs, entry.name, 'package.json'));
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
   }
   for (const pkgJson of candidates) {
     if (fs.existsSync(pkgJson)) {
@@ -58,47 +61,80 @@ function loadTypeScript(rootDir) {
 
 const ts = loadTypeScript(targetRoot);
 
-// 2. Load tsconfig path aliases (best-effort)
-function loadPathAliases(rootDir) {
+// 2. Load tsconfig path aliases per package/app scope (supports monorepos!)
+function parseTsconfigAliases(scopeDir) {
   const aliases = [];
-  const tsconfigPath = path.join(rootDir, 'tsconfig.json');
-  if (!fs.existsSync(tsconfigPath)) return aliases;
-  try {
-    const raw = fs.readFileSync(tsconfigPath, 'utf8');
-    const stripped = raw
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/^\s*\/\/.*$/gm, '')
-      .replace(/,(\s*[}\]])/g, '$1');
-    const parsed = JSON.parse(stripped);
-    const baseUrl = parsed?.compilerOptions?.baseUrl || '.';
-    const pathsMap = parsed?.compilerOptions?.paths || {};
-    for (const [pattern, targets] of Object.entries(pathsMap)) {
-      if (!Array.isArray(targets) || targets.length === 0) continue;
-      const prefix = pattern.replace(/\*.*$/, '');
-      const targetPrefix = String(targets[0]).replace(/\*.*$/, '');
-      if (prefix) {
-        aliases.push({
-          prefix,
-          targetBase: path.resolve(rootDir, baseUrl, targetPrefix)
-        });
+  const tsconfigPath = path.join(scopeDir, 'tsconfig.json');
+  if (fs.existsSync(tsconfigPath)) {
+    try {
+      const raw = fs.readFileSync(tsconfigPath, 'utf8');
+      const stripped = raw
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/^\s*\/\/.*$/gm, '')
+        .replace(/,(\s*[}\]])/g, '$1');
+      const parsed = JSON.parse(stripped);
+      const baseUrl = parsed?.compilerOptions?.baseUrl || '.';
+      const pathsMap = parsed?.compilerOptions?.paths || {};
+      for (const [pattern, targets] of Object.entries(pathsMap)) {
+        if (!Array.isArray(targets) || targets.length === 0) continue;
+        const prefix = pattern.replace(/\*.*$/, '');
+        const targetPrefix = String(targets[0]).replace(/\*.*$/, '');
+        if (prefix) {
+          aliases.push({
+            prefix,
+            targetBase: path.resolve(scopeDir, baseUrl, targetPrefix)
+          });
+        }
       }
-    }
-  } catch {}
+    } catch {}
+  }
   if (aliases.length === 0) {
-    if (fs.existsSync(path.join(rootDir, 'src'))) {
-      aliases.push({ prefix: '@/', targetBase: path.join(rootDir, 'src') + path.sep });
-      aliases.push({ prefix: '~/', targetBase: path.join(rootDir, 'src') + path.sep });
+    if (fs.existsSync(path.join(scopeDir, 'src'))) {
+      aliases.push({ prefix: '@/', targetBase: path.join(scopeDir, 'src') + path.sep });
+      aliases.push({ prefix: '~/', targetBase: path.join(scopeDir, 'src') + path.sep });
     } else {
-      aliases.push({ prefix: '@/', targetBase: rootDir + path.sep });
+      aliases.push({ prefix: '@/', targetBase: scopeDir + path.sep });
     }
   }
   return aliases;
 }
 
-const pathAliases = loadPathAliases(targetRoot);
+const aliasScopes = [{ scopeDir: targetRoot, aliases: parseTsconfigAliases(targetRoot) }];
+for (const wsDir of ['apps', 'packages', 'services', 'libs']) {
+  const fullWs = path.join(targetRoot, wsDir);
+  if (fs.existsSync(fullWs)) {
+    try {
+      for (const entry of fs.readdirSync(fullWs, { withFileTypes: true })) {
+        if (entry.isDirectory() && !entry.name.startsWith('.')) {
+          const subDir = path.join(fullWs, entry.name);
+          aliasScopes.push({ scopeDir: subDir, aliases: parseTsconfigAliases(subDir) });
+        }
+      }
+    } catch {}
+  }
+}
+// Match deepest scope first
+aliasScopes.sort((a, b) => b.scopeDir.length - a.scopeDir.length);
 
-// 3. Walk repository files
-function collectFiles(dir, acc = []) {
+function getAliasesForFile(absFile) {
+  for (const s of aliasScopes) {
+    if (absFile.startsWith(s.scopeDir + path.sep)) return s.aliases;
+  }
+  return aliasScopes[aliasScopes.length - 1].aliases;
+}
+
+// 3. Collect repository files strictly respecting .gitignore (via git ls-files when available)
+function isIgnoredPath(relPosix) {
+  const parts = relPosix.split('/');
+  for (let i = 0; i < parts.length - 1; i++) {
+    const seg = parts[i];
+    if (IGNORE_DIRS.has(seg)) return true;
+    if (seg.startsWith('.') && seg !== '.storybook') return true;
+  }
+  return false;
+}
+
+function collectFilesWalk(dir, acc = []) {
   let entries = [];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -106,13 +142,11 @@ function collectFiles(dir, acc = []) {
     return acc;
   }
   for (const entry of entries) {
-    if (entry.name.startsWith('.') && entry.name !== '.storybook') {
-      if (IGNORE_DIRS.has(entry.name) || entry.name.startsWith('.git')) continue;
-    }
+    if (entry.name.startsWith('.') && entry.name !== '.storybook') continue;
     if (IGNORE_DIRS.has(entry.name)) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      collectFiles(full, acc);
+      collectFilesWalk(full, acc);
     } else if (entry.isFile()) {
       if (entry.name.endsWith('.d.ts')) continue;
       const ext = path.extname(entry.name);
@@ -124,7 +158,34 @@ function collectFiles(dir, acc = []) {
   return acc;
 }
 
-const allFiles = collectFiles(targetRoot).sort();
+function collectFilesGitAware(rootDir) {
+  if (fs.existsSync(path.join(rootDir, '.git'))) {
+    try {
+      const out = execFileSync(
+        'git',
+        ['-C', rootDir, 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+        { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }
+      );
+      const files = [];
+      for (const rel of out.split('\0')) {
+        if (!rel || rel.endsWith('.d.ts')) continue;
+        if (isIgnoredPath(rel)) continue;
+        const ext = path.extname(rel);
+        if (!CODE_EXTS.has(ext) || TEST_FILE_RE.test(rel)) continue;
+        const abs = path.join(rootDir, rel);
+        if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
+          files.push(abs);
+        }
+      }
+      return files;
+    } catch {
+      // Fallback to directory walk if git fails
+    }
+  }
+  return collectFilesWalk(rootDir);
+}
+
+const allFiles = collectFilesGitAware(targetRoot).sort();
 const allFilesSet = new Set(allFiles);
 
 function toRel(absPath) {
@@ -132,14 +193,15 @@ function toRel(absPath) {
 }
 
 function resolveImport(fromFile, spec) {
-  if (!spec || (!spec.startsWith('.') && !pathAliases.some(a => spec.startsWith(a.prefix)))) {
+  const aliases = getAliasesForFile(fromFile);
+  if (!spec || (!spec.startsWith('.') && !aliases.some(a => spec.startsWith(a.prefix)))) {
     return null;
   }
   let candidateBase = null;
   if (spec.startsWith('.')) {
     candidateBase = path.resolve(path.dirname(fromFile), spec);
   } else {
-    for (const a of pathAliases) {
+    for (const a of aliases) {
       if (spec.startsWith(a.prefix)) {
         const rest = spec.slice(a.prefix.length);
         candidateBase = path.resolve(a.targetBase, rest);
@@ -502,13 +564,19 @@ for (const absFile of allFiles) {
   };
 }
 
-// 6. Compute Module-Level Topology
+// 6. Compute Module-Level Topology (Monorepo-aware for apps/*, packages/*, services/*, libs/*)
 function getModuleBucket(relPath) {
   const parts = relPath.split('/');
-  if (parts[0] === 'packages' && parts.length >= 3) {
-    return `${parts[0]}/${parts[1]}/${parts[2]}`;
+  if ((parts[0] === 'apps' || parts[0] === 'packages' || parts[0] === 'services' || parts[0] === 'libs') && parts.length >= 2) {
+    if (parts[2] === 'src' && parts.length >= 5) {
+      return `${parts[0]}/${parts[1]}/src/${parts[3]}`;
+    }
+    if (parts.length >= 4) {
+      return `${parts[0]}/${parts[1]}/${parts[2]}`;
+    }
+    return `${parts[0]}/${parts[1]}`;
   }
-  if ((parts[0] === 'src' || parts[0] === 'app') && parts.length >= 2) {
+  if ((parts[0] === 'src' || parts[0] === 'app') && parts.length >= 3) {
     return `${parts[0]}/${parts[1]}`;
   }
   return parts.length >= 2 ? parts[0] : 'root';
